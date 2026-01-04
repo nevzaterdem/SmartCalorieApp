@@ -1,5 +1,6 @@
 {
   "name": "frontend",
+  "description": "SmartCalorieApp Frontend - Web and Electron Desktop Application",
   "private": true,
   "version": "0.0.0",
   "main": "electron-main.js",

@@ -1,5 +1,6 @@
 {
   "name": "mobile",
+  "description": "SmartCalorieApp Mobile App - React Native and Expo",
   "version": "1.0.0",
   "main": "index.ts",
   "scripts": {
