@@ -1,64 +1,92 @@
-# SmartCalorieApp
+# 🍎 SmartCalorieApp
 
-SmartCalorieApp, kullanıcıların günlük kalori alımlarını, su tüketimlerini ve diyet programlarını takip etmelerini sağlayan kapsamlı bir sağlık ve yaşam tarzı uygulamasıdır. Hem mobil hem de web (masaüstü) platformlarında çalışacak şekilde tasarlanmıştır.
+**Yapay Zeka Destekli Akıllı Yaşam ve Sağlık Asistanı**
 
-## 🚀 Proje Hakkında
+SmartCalorieApp, modern teknolojileri kullanarak kullanıcıların sağlıklı yaşam hedeflerine ulaşmalarını sağlayan, uçtan uca entegre bir ekosistemdir. Mobil uygulama (iOS/Android) ve masaüstü/web arayüzleri sayesinde verilerinize her yerden erişebilir, **Google Gemini AI** desteğiyle kişiselleştirilmiş diyet önerileri alabilirsiniz.
 
-Bu proje üç ana bileşenden oluşmaktadır:
-1.  **Backend**: Uygulamanın sunucu tarafı, veritabanı yönetimi ve API servisleri.
-2.  **Frontend**: Web ve masaüstü (Electron) tabanlı kullanıcı arayüzü.
-3.  **Mobile**: iOS ve Android cihazlar için React Native (Expo) tabanlı mobil uygulama.
+---
 
-## 🛠️ Teknolojiler
+## ✨ Temel Özellikler
 
-### Backend
-*   **Platform**: Node.js
-*   **Framework**: Express.js
-*   **Dil**: TypeScript
-*   **Veritabanı ORM**: Prisma
-*   **Yapay Zeka**: Google Generative AI (@google/generative-ai)
-*   **Kimlik Doğrulama**: JWT (JSON Web Tokens), Bcryptjs
+### 🧠 Yapay Zeka Desteği
+*   **Akıllı Diyet Planlama**: Kullanıcının fiziksel özelliklerine ve hedeflerine göre otomatik diyet listesi oluşturma.
+*   **Görsel Analiz (Planlanan)**: Yemek fotoğraflarından kalori tahmini yapabilme potansiyeli.
 
-### Frontend (Web/Desktop)
-*   **Build Tool**: Vite
-*   **Framework**: React
-*   **Dil**: TypeScript
-*   **Stil**: TailwindCSS
-*   **Masaüstü Entegrasyonu**: Electron
-*   **İkonlar**: Lucide React
-*   **Grafikler**: Recharts
+### 📱 Mobil Deneyim (React Native)
+*   **Hızlı ve Akıcı Arayüz**: NativeWind ile tasarlanmış modern, responsive tasarım.
+*   **Kolay Takip**: Günlük kalori, su tüketimi ve makro besin (Protein, Karbonhidrat, Yağ) takibi.
+*   **Mobil Entegrasyonlar**: Kamera ve bildirim servisleri ile tam uyumluluk.
 
-### Mobile
-*   **Framework**: React Native (Expo SDK 54)
-*   **Yönlendirme**: Expo Router
-*   **Stil**: NativeWind (TailwindCSS for React Native)
-*   **Dil**: TypeScript
-*   **Özellikler**: Kamera erişimi, bildirimler, jest yönetimi (Gesture Handler)
+### 💻 Web ve Masaüstü (React & Electron)
+*   **Geniş Ekran Yönetimi**: Detaylı grafikler ve raporlar ile uzun vadeli gelişim takibi.
+*   **Masaüstü Uygulaması**: Electron sayesinde yerel bir uygulama gibi çalışma performansı.
 
-## 📂 Proje Yapısı
+### 🔄 Güçlü Altyapı
+*   **Gerçek Zamanlı Veri**: Tüm platformlar arasında anlık veri senkronizasyonu.
+*   **Güvenli Kimlik Doğrulama**: JWT tabanlı güvenli oturum yönetimi.
 
-```
+---
+
+## 🛠️ Teknoloji Yığını (Tech Stack)
+
+Bu proje, ölçeklenebilirlik ve performans gözetilerek en güncel teknolojilerle geliştirilmiştir.
+
+| Alan | Teknolojiler |
+|------|--------------|
+| **Backend** | Node.js, Express.js, TypeScript, Prisma ORM, PostgreSQL (Önerilen) |
+| **Frontend** | React, Vite, TailwindCSS, Electron, Recharts, Lucide Icons |
+| **Mobile** | React Native, Expo SDK 54, Expo Router, NativeWind |
+| **Yapay Zeka** | Google Gemini AI |
+| **Güvenlik** | Bcrypt, JWT (JSON Web Tokens) |
+
+---
+
+## 📂 Proje Mimarisi
+
+```bash
 SmartCalorieApp/
-├── backend/       # Sunucu ve API kodları
-├── frontend/      # Web ve Electron arayüz kodları
-├── mobile/        # React Native mobil uygulama kodları
-└── .gitignore     # Git tarafından yok sayılacak dosyalar
+├── backend/        # RESTful API servisleri ve iş mantığı
+│   ├── src/
+│   │   ├── controllers/ # İstek işleyicileri
+│   │   ├── routes/      # API uç noktaları
+│   │   └── services/    # Yapay zeka ve veritabanı servisleri
+│   └── prisma/          # Veritabanı şemaları
+├── frontend/       # Web ve Masaüstü kullanıcı arayüzü
+│   ├── src/
+│   │   ├── components/  # Yeniden kullanılabilir bileşenler
+│   │   └── pages/       # Uygulama sayfaları
+└── mobile/         # Çapraz platform mobil uygulama
+    ├── app/             # Expo Router tabanlı sayfa yapısı
+    └── components/      # Mobil uyumlu arayüz bileşenleri
 ```
 
-## 🏁 Kurulum ve Çalıştırma
+---
 
-Projeyi yerel ortamınızda çalıştırmak için aşağıdaki adımları izleyebilirsiniz.
+## 🏁 Kurulum ve Geliştirme Rehberi
 
-### 1. Backend Kurulumu
+Projeyi yerel ortamınızda ayağa kaldırmak için aşağıdaki adımları sırasıyla uygulayın.
+
+### 1. Backend Hazırlığı
+Backend servisini başlatmadan önce gerekli çevresel değişkenleri ayarlamalısınız.
 
 ```bash
 cd backend
 npm install
-# .env dosyasını oluşturun ve veritabanı bağlantı bilgilerinizi girin
+```
+`.env` dosyasını oluşturun:
+```env
+DATABASE_URL="postgresql://user:password@localhost:5432/smartcalorie"
+JWT_SECRET="guclu_bir_sifre"
+GEMINI_API_KEY="google_gemini_api_key"
+PORT=3000
+```
+Ardından servisi başlatın:
+```bash
 npm run dev
 ```
 
-### 2. Frontend Kurulumu
+### 2. Frontend (Web/Desktop)
+Web arayüzünü geliştirmek veya Electron ile masaüstü uygulaması olarak çalıştırmak için:
 
 ```bash
 cd frontend
@@ -66,25 +94,29 @@ npm install
 npm run dev
 ```
 
-### 3. Mobil Uygulama Kurulumu
+### 3. Mobil Uygulama
+iOS veya Android simülatöründe ya da fiziksel cihazınızda test etmek için:
 
 ```bash
 cd mobile
 npm install
 npm start
 ```
-Mobil uygulamayı çalıştırmak için telefonunuzda **Expo Go** uygulamasının yüklü olması gerekmektedir. `npm start` komutundan sonra çıkan QR kodu Expo Go ile okutarak uygulamayı test edebilirsiniz.
+*   **Fiziksel Cihaz**: Telefonunuza **Expo Go** uygulamasını indirin ve terminaldeki QR kodu taratın.
 
-## 📄 Lisans ve Haklar
+---
 
-**BU PROJENİN TÜM HAKLARI SAKLIDIR.**
+## 📄 Lisans ve Telif Hakları
 
-Bu yazılımın ve kaynak kodlarının mülkiyeti tamamen geliştiriciye aittir.
+⚠️ **YASAL UYARI: BU PROJENİN TÜM HAKLARI SAKLIDIR.**
 
-*   ❌ Kodların izinsiz kopyalanması, çoğaltılması veya dağıtılması yasaktır.
-*   ❌ Ticari veya ticari olmayan herhangi bir amaçla izinsiz kullanımı yasaktır.
-*   ❌ Kaynak kod üzerinde değişiklik yapılması veya türevlerinin oluşturulması yasaktır.
+Bu yazılımın, kaynak kodlarının, tasarımlarının ve belgelerinin mülkiyeti tamamen **Nevzat Erdem**'e aittir.
 
-Herhangi bir kullanım talebi veya izin için geliştirici ile iletişime geçiniz.
+1.  **Kopyalanamaz**: Bu projenin kodları izinsiz kopyalanamaz, çoğaltılamaz veya başka bir projede kullanılamaz.
+2.  **Dağıtılamaz**: Kaynak kodlar halka açık veya özel platformlarda izinsiz paylaşılamaz.
+3.  **Değiştirilemez**: Kaynak kod üzerinde izinsiz değişiklik yapılamaz, türev eserler oluşturulamaz.
+4.  **Ticari Kullanım Yasaktır**: Yazılı izin olmaksızın ticari amaçla kullanılamaz.
 
-Copyright © 2026 Nevzat Erdem. Tüm Hakları Saklıdır.
+Herhangi bir lisanslama talebi, iş birliği veya izin için doğrudan geliştirici ile iletişime geçiniz.
+
+**Copyright © 2026 Nevzat Erdem. Tüm Hakları Saklıdır.**
