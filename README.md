@@ -75,14 +75,16 @@ npm start
 ```
 Mobil uygulamayı çalıştırmak için telefonunuzda **Expo Go** uygulamasının yüklü olması gerekmektedir. `npm start` komutundan sonra çıkan QR kodu Expo Go ile okutarak uygulamayı test edebilirsiniz.
 
-## 🤝 Katkıda Bulunma
+## 📄 Lisans ve Haklar
 
-1.  Bu repository'yi fork edin.
-2.  Yeni bir özellik dalı (branch) oluşturun (`git checkout -b ozellik/YeniOzellik`).
-3.  Değişikliklerinizi commit edin (`git commit -m 'Yeni özellik eklendi'`).
-4.  Dalınızı push edin (`git push origin ozellik/YeniOzellik`).
-5.  Bir Pull Request oluşturun.
+**BU PROJENİN TÜM HAKLARI SAKLIDIR.**
 
-## 📄 Lisans
+Bu yazılımın ve kaynak kodlarının mülkiyeti tamamen geliştiriciye aittir.
 
-Bu proje kişisel kullanım ve geliştirmeler için oluşturulmuştur.
+*   ❌ Kodların izinsiz kopyalanması, çoğaltılması veya dağıtılması yasaktır.
+*   ❌ Ticari veya ticari olmayan herhangi bir amaçla izinsiz kullanımı yasaktır.
+*   ❌ Kaynak kod üzerinde değişiklik yapılması veya türevlerinin oluşturulması yasaktır.
+
+Herhangi bir kullanım talebi veya izin için geliştirici ile iletişime geçiniz.
+
+Copyright © 2026 Nevzat Erdem. Tüm Hakları Saklıdır.
