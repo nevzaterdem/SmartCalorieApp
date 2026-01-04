@@ -1,0 +1,13 @@
+{
+  "compilerOptions": {
+    "target": "es2016",
+    "module": "commonjs",
+    "rootDir": "./src",        // Kodlarımız burada olacak
+    "outDir": "./dist",        // Derlenmiş kodlar buraya çıkacak
+    "strict": true,            // Katı mod (Hataları affetmez, güvenlidir)
+    "esModuleInterop": true,
+    "skipLibCheck": true,
+    "forceConsistentCasingInFileNames": true
+  },
+  "include": ["src/**/*"]
+}

@@ -1,0 +1,104 @@
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+model User {
+  id               Int      @id @default(autoincrement())
+  email            String   @unique
+  passwordHash     String
+  name             String?
+  age              Int?
+  gender           String?   
+  weight           Float?    
+  height           Float?    
+  activityLevel    Float    @default(1.2) 
+  dailyCalorieGoal Int?   
+  dailyWaterGoal   Int      @default(2000) // ml
+  createdAt        DateTime @default(now())
+  updatedAt        DateTime @updatedAt
+  
+  // Relations
+  mealLogs      MealLog[]
+  waterLogs     WaterLog[]
+  exercises     Exercise[]
+  weightLogs    WeightLog[]
+  favoriteMeals FavoriteMeal[]
+  achievements  Achievement[]
+
+  // Social Relations
+  followedBy    Friendship[] @relation("following")
+  following     Friendship[] @relation("follower")
+}
+
+model Friendship {
+  followerId  Int
+  follower    User @relation("follower", fields: [followerId], references: [id])
+  followingId Int
+  following   User @relation("following", fields: [followingId], references: [id])
+  createdAt   DateTime @default(now())
+
+  @@id([followerId, followingId])
+}
+
+model MealLog {
+  id        Int      @id @default(autoincrement())
+  userId    Int
+  user      User     @relation(fields: [userId], references: [id])
+  foodName  String
+  imageUrl  String?  
+  calories  Int
+  protein   Float?
+  carbs     Float?
+  fat       Float?
+  createdAt DateTime @default(now())
+}
+
+model WaterLog {
+  id        Int      @id @default(autoincrement())
+  userId    Int
+  user      User     @relation(fields: [userId], references: [id])
+  amount    Int      // ml cinsinden
+  createdAt DateTime @default(now())
+}
+
+model Exercise {
+  id             Int      @id @default(autoincrement())
+  userId         Int
+  user           User     @relation(fields: [userId], references: [id])
+  name           String
+  duration       Int      // dakika
+  caloriesBurned Int
+  createdAt      DateTime @default(now())
+}
+
+model WeightLog {
+  id        Int      @id @default(autoincrement())
+  userId    Int
+  user      User     @relation(fields: [userId], references: [id])
+  weight    Float
+  createdAt DateTime @default(now())
+}
+
+model FavoriteMeal {
+  id       Int    @id @default(autoincrement())
+  userId   Int
+  user     User   @relation(fields: [userId], references: [id])
+  foodName String
+  calories Int
+  protein  Float
+  carbs    Float
+  fat      Float
+}
+
+model Achievement {
+  id         Int      @id @default(autoincrement())
+  userId     Int
+  user       User     @relation(fields: [userId], references: [id])
+  type       String   // "streak_7", "first_meal", "water_goal"
+  unlockedAt DateTime @default(now())
+}

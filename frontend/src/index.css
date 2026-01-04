@@ -1,0 +1,309 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+@import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800;900&display=swap');
+
+:root {
+    --gradient-primary: linear-gradient(135deg, #059669 0%, #10b981 50%, #34d399 100%);
+    --gradient-purple: linear-gradient(135deg, #7c3aed 0%, #a855f7 50%, #c084fc 100%);
+    --gradient-dark: linear-gradient(135deg, #1f2937 0%, #374151 100%);
+    --gradient-orange: linear-gradient(135deg, #f97316 0%, #fb923c 100%);
+    --shadow-glow: 0 0 40px rgba(16, 185, 129, 0.3);
+}
+
+* {
+    font-family: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
+}
+
+body {
+    background: linear-gradient(180deg, #f0fdf4 0%, #ecfdf5 50%, #d1fae5 100%);
+    min-height: 100vh;
+}
+
+/* Custom Animations */
+@keyframes float {
+
+    0%,
+    100% {
+        transform: translateY(0px);
+    }
+
+    50% {
+        transform: translateY(-10px);
+    }
+}
+
+@keyframes pulse-glow {
+
+    0%,
+    100% {
+        box-shadow: 0 0 20px rgba(16, 185, 129, 0.4);
+    }
+
+    50% {
+        box-shadow: 0 0 40px rgba(16, 185, 129, 0.6);
+    }
+}
+
+@keyframes slide-up {
+    from {
+        opacity: 0;
+        transform: translateY(20px);
+    }
+
+    to {
+        opacity: 1;
+        transform: translateY(0);
+    }
+}
+
+@keyframes fade-in {
+    from {
+        opacity: 0;
+    }
+
+    to {
+        opacity: 1;
+    }
+}
+
+@keyframes shimmer {
+    0% {
+        background-position: -200% 0;
+    }
+
+    100% {
+        background-position: 200% 0;
+    }
+}
+
+@keyframes bounce-subtle {
+
+    0%,
+    100% {
+        transform: scale(1);
+    }
+
+    50% {
+        transform: scale(1.02);
+    }
+}
+
+.animate-float {
+    animation: float 3s ease-in-out infinite;
+}
+
+.animate-pulse-glow {
+    animation: pulse-glow 2s ease-in-out infinite;
+}
+
+.animate-slide-up {
+    animation: slide-up 0.5s ease-out forwards;
+}
+
+.animate-fade-in {
+    animation: fade-in 0.3s ease-out forwards;
+}
+
+.animate-shimmer {
+    background: linear-gradient(90deg, transparent, rgba(255, 255, 255, 0.4), transparent);
+    background-size: 200% 100%;
+    animation: shimmer 2s infinite;
+}
+
+.animate-bounce-subtle {
+    animation: bounce-subtle 2s ease-in-out infinite;
+}
+
+/* Glass Effect */
+.glass {
+    background: rgba(255, 255, 255, 0.8);
+    backdrop-filter: blur(20px);
+    -webkit-backdrop-filter: blur(20px);
+    border: 1px solid rgba(255, 255, 255, 0.3);
+}
+
+.glass-dark {
+    background: rgba(31, 41, 55, 0.9);
+    backdrop-filter: blur(20px);
+    -webkit-backdrop-filter: blur(20px);
+}
+
+/* Gradient Text */
+.gradient-text {
+    background: linear-gradient(135deg, #059669 0%, #10b981 50%, #34d399 100%);
+    -webkit-background-clip: text;
+    -webkit-text-fill-color: transparent;
+    background-clip: text;
+}
+
+.gradient-text-purple {
+    background: linear-gradient(135deg, #7c3aed 0%, #a855f7 100%);
+    -webkit-background-clip: text;
+    -webkit-text-fill-color: transparent;
+    background-clip: text;
+}
+
+/* Card Styles */
+.card-elevated {
+    box-shadow:
+        0 4px 6px -1px rgba(0, 0, 0, 0.1),
+        0 10px 20px -1px rgba(0, 0, 0, 0.05),
+        0 20px 40px -1px rgba(0, 0, 0, 0.03);
+    transition: all 0.3s ease;
+}
+
+.card-elevated:hover {
+    transform: translateY(-2px);
+    box-shadow:
+        0 8px 12px -1px rgba(0, 0, 0, 0.12),
+        0 16px 32px -1px rgba(0, 0, 0, 0.08),
+        0 24px 48px -1px rgba(0, 0, 0, 0.05);
+}
+
+/* Button Styles */
+.btn-primary {
+    background: linear-gradient(135deg, #059669 0%, #10b981 100%);
+    transition: all 0.3s ease;
+    position: relative;
+    overflow: hidden;
+}
+
+.btn-primary::before {
+    content: '';
+    position: absolute;
+    top: 0;
+    left: -100%;
+    width: 100%;
+    height: 100%;
+    background: linear-gradient(90deg, transparent, rgba(255, 255, 255, 0.2), transparent);
+    transition: left 0.5s ease;
+}
+
+.btn-primary:hover::before {
+    left: 100%;
+}
+
+.btn-primary:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 10px 20px rgba(16, 185, 129, 0.3);
+}
+
+.btn-purple {
+    background: linear-gradient(135deg, #7c3aed 0%, #a855f7 100%);
+}
+
+.btn-purple:hover {
+    box-shadow: 0 10px 20px rgba(168, 85, 247, 0.3);
+}
+
+/* Input Styles */
+.input-modern {
+    transition: all 0.3s ease;
+    border: 2px solid transparent;
+    background: linear-gradient(#f9fafb, #f9fafb) padding-box,
+        linear-gradient(135deg, #e5e7eb, #d1d5db) border-box;
+}
+
+.input-modern:focus {
+    background: linear-gradient(#ffffff, #ffffff) padding-box,
+        linear-gradient(135deg, #10b981, #34d399) border-box;
+    box-shadow: 0 0 0 4px rgba(16, 185, 129, 0.1);
+}
+
+/* Hero Image Container */
+.hero-image-container {
+    position: relative;
+    overflow: hidden;
+    border-radius: 2rem;
+}
+
+.hero-image-container::before {
+    content: '';
+    position: absolute;
+    inset: 0;
+    background: linear-gradient(180deg, transparent 60%, rgba(0, 0, 0, 0.6) 100%);
+    z-index: 1;
+}
+
+/* Scrollbar */
+::-webkit-scrollbar {
+    width: 8px;
+}
+
+::-webkit-scrollbar-track {
+    background: #f1f5f9;
+    border-radius: 4px;
+}
+
+::-webkit-scrollbar-thumb {
+    background: linear-gradient(180deg, #10b981, #059669);
+    border-radius: 4px;
+}
+
+::-webkit-scrollbar-thumb:hover {
+    background: linear-gradient(180deg, #059669, #047857);
+}
+
+/* Meal Card Colors */
+.meal-breakfast {
+    border-left: 4px solid #f97316;
+}
+
+.meal-breakfast .meal-icon {
+    background: #fff7ed;
+    color: #f97316;
+}
+
+.meal-lunch {
+    border-left: 4px solid #eab308;
+}
+
+.meal-lunch .meal-icon {
+    background: #fefce8;
+    color: #eab308;
+}
+
+.meal-snack {
+    border-left: 4px solid #a855f7;
+}
+
+.meal-snack .meal-icon {
+    background: #faf5ff;
+    color: #a855f7;
+}
+
+.meal-dinner {
+    border-left: 4px solid #3b82f6;
+}
+
+.meal-dinner .meal-icon {
+    background: #eff6ff;
+    color: #3b82f6;
+}
+
+/* Goal Cards */
+.goal-card {
+    transition: all 0.3s ease;
+    cursor: pointer;
+}
+
+.goal-card:hover {
+    transform: scale(1.02);
+}
+
+.goal-card.active {
+    background: linear-gradient(135deg, #1f2937 0%, #374151 100%);
+    color: white;
+}
+
+/* Nutrition Pills */
+.nutrition-pill {
+    backdrop-filter: blur(10px);
+    transition: all 0.3s ease;
+}
+
+.nutrition-pill:hover {
+    transform: scale(1.05);
+}
