@@ -1,92 +1,92 @@
 # 🍎 SmartCalorieApp
 
-**Yapay Zeka Destekli Akıllı Yaşam ve Sağlık Asistanı**
+**AI-Powered Smart Lifestyle and Health Assistant**
 
-SmartCalorieApp, modern teknolojileri kullanarak kullanıcıların sağlıklı yaşam hedeflerine ulaşmalarını sağlayan, uçtan uca entegre bir ekosistemdir. Mobil uygulama (iOS/Android) ve masaüstü/web arayüzleri sayesinde verilerinize her yerden erişebilir, **Google Gemini AI** desteğiyle kişiselleştirilmiş diyet önerileri alabilirsiniz.
-
----
-
-## ✨ Temel Özellikler
-
-### 🧠 Yapay Zeka Desteği
-*   **Akıllı Diyet Planlama**: Kullanıcının fiziksel özelliklerine ve hedeflerine göre otomatik diyet listesi oluşturma.
-*   **Görsel Analiz (Planlanan)**: Yemek fotoğraflarından kalori tahmini yapabilme potansiyeli.
-
-### 📱 Mobil Deneyim (React Native)
-*   **Hızlı ve Akıcı Arayüz**: NativeWind ile tasarlanmış modern, responsive tasarım.
-*   **Kolay Takip**: Günlük kalori, su tüketimi ve makro besin (Protein, Karbonhidrat, Yağ) takibi.
-*   **Mobil Entegrasyonlar**: Kamera ve bildirim servisleri ile tam uyumluluk.
-
-### 💻 Web ve Masaüstü (React & Electron)
-*   **Geniş Ekran Yönetimi**: Detaylı grafikler ve raporlar ile uzun vadeli gelişim takibi.
-*   **Masaüstü Uygulaması**: Electron sayesinde yerel bir uygulama gibi çalışma performansı.
-
-### 🔄 Güçlü Altyapı
-*   **Gerçek Zamanlı Veri**: Tüm platformlar arasında anlık veri senkronizasyonu.
-*   **Güvenli Kimlik Doğrulama**: JWT tabanlı güvenli oturum yönetimi.
+SmartCalorieApp is an end-to-end integrated ecosystem designed to help users achieve their healthy living goals using modern technologies. With its mobile application (iOS/Android) and desktop/web interfaces, you can access your data from anywhere and receive personalized diet recommendations powered by **Google Gemini AI**.
 
 ---
 
-## 🛠️ Teknoloji Yığını (Tech Stack)
+## ✨ Key Features
 
-Bu proje, ölçeklenebilirlik ve performans gözetilerek en güncel teknolojilerle geliştirilmiştir.
+### 🧠 AI Support
+*   **Smart Diet Planning**: Automatic creation of diet lists tailored to the user's physical attributes and goals.
+*   **Visual Analysis (Planned)**: Potential for calorie estimation from food photos.
 
-| Alan | Teknolojiler |
+### 📱 Mobile Experience (React Native)
+*   **Fast & Fluid UI**: Modern, responsive design built with NativeWind.
+*   **Easy Tracking**: Daily tracking of calories, water intake, and macro-nutrients (Protein, Carbs, Fat).
+*   **Mobile Integrations**: Full compatibility with camera and notification services.
+
+### 💻 Web and Desktop (React & Electron)
+*   **Large Screen Management**: Detailed charts and reports for long-term progress tracking.
+*   **Desktop App**: Native-like performance on desktop via Electron.
+
+### 🔄 Robust Infrastructure
+*   **Real-Time Data**: Instant data synchronization across all platforms.
+*   **Secure Authentication**: JWT-based secure session management.
+
+---
+
+## 🛠️ Tech Stack
+
+This project is built with the latest technologies, prioritizing scalability and performance.
+
+| Area | Technologies |
 |------|--------------|
-| **Backend** | Node.js, Express.js, TypeScript, Prisma ORM, PostgreSQL (Önerilen) |
+| **Backend** | Node.js, Express.js, TypeScript, Prisma ORM, PostgreSQL (Recommended) |
 | **Frontend** | React, Vite, TailwindCSS, Electron, Recharts, Lucide Icons |
 | **Mobile** | React Native, Expo SDK 54, Expo Router, NativeWind |
-| **Yapay Zeka** | Google Gemini AI |
-| **Güvenlik** | Bcrypt, JWT (JSON Web Tokens) |
+| **Artificial Intelligence** | Google Gemini AI |
+| **Security** | Bcrypt, JWT (JSON Web Tokens) |
 
 ---
 
-## 📂 Proje Mimarisi
+## 📂 Project Architecture
 
 ```bash
 SmartCalorieApp/
-├── backend/        # RESTful API servisleri ve iş mantığı
+├── backend/        # RESTful API services and business logic
 │   ├── src/
-│   │   ├── controllers/ # İstek işleyicileri
-│   │   ├── routes/      # API uç noktaları
-│   │   └── services/    # Yapay zeka ve veritabanı servisleri
-│   └── prisma/          # Veritabanı şemaları
-├── frontend/       # Web ve Masaüstü kullanıcı arayüzü
+│   │   ├── controllers/ # Request handlers
+│   │   ├── routes/      # API endpoints
+│   │   └── services/    # AI and database services
+│   └── prisma/          # Database schemas
+├── frontend/       # Web and Desktop user interface
 │   ├── src/
-│   │   ├── components/  # Yeniden kullanılabilir bileşenler
-│   │   └── pages/       # Uygulama sayfaları
-└── mobile/         # Çapraz platform mobil uygulama
-    ├── app/             # Expo Router tabanlı sayfa yapısı
-    └── components/      # Mobil uyumlu arayüz bileşenleri
+│   │   ├── components/  # Reusable components
+│   │   └── pages/       # Application pages
+└── mobile/         # Cross-platform mobile application
+    ├── app/             # Expo Router based page structure
+    └── components/      # Mobile-compatible UI components
 ```
 
 ---
 
-## 🏁 Kurulum ve Geliştirme Rehberi
+## 🏁 Installation & Development Guide
 
-Projeyi yerel ortamınızda ayağa kaldırmak için aşağıdaki adımları sırasıyla uygulayın.
+Follow these steps to set up the project in your local environment.
 
-### 1. Backend Hazırlığı
-Backend servisini başlatmadan önce gerekli çevresel değişkenleri ayarlamalısınız.
+### 1. Backend Setup
+Before starting the backend service, you need to configure the environment variables.
 
 ```bash
 cd backend
 npm install
 ```
-`.env` dosyasını oluşturun:
+Create a `.env` file:
 ```env
 DATABASE_URL="postgresql://user:password@localhost:5432/smartcalorie"
-JWT_SECRET="guclu_bir_sifre"
-GEMINI_API_KEY="google_gemini_api_key"
+JWT_SECRET="your_strong_secret_key"
+GEMINI_API_KEY="your_google_gemini_api_key"
 PORT=3000
 ```
-Ardından servisi başlatın:
+Then start the service:
 ```bash
 npm run dev
 ```
 
 ### 2. Frontend (Web/Desktop)
-Web arayüzünü geliştirmek veya Electron ile masaüstü uygulaması olarak çalıştırmak için:
+To develop the web interface or run it as an Electron desktop app:
 
 ```bash
 cd frontend
@@ -94,18 +94,29 @@ npm install
 npm run dev
 ```
 
-### 3. Mobil Uygulama
-iOS veya Android simülatöründe ya da fiziksel cihazınızda test etmek için:
+### 3. Mobile Application
+To test on iOS/Android simulator or a physical device:
 
 ```bash
 cd mobile
 npm install
 npm start
 ```
-*   **Fiziksel Cihaz**: Telefonunuza **Expo Go** uygulamasını indirin ve terminaldeki QR kodu taratın.
+*   **Physical Device**: Download the **Expo Go** app on your phone and scan the QR code from the terminal.
 
 ---
 
-## 📄 Lisans ve Telif Hakları
+## 📄 License and Copyrights
 
-MIT License
+⚠️ **LEGAL NOTICE: ALL RIGHTS RESERVED.**
+
+The ownership of this software, its source code, designs, and documentation belongs entirely to **Nevzat Erdem**.
+
+1.  **No Copying**: The code of this project cannot be copied, reproduced, or used in another project without permission.
+2.  **No Distribution**: Source codes cannot be shared on public or private platforms without permission.
+3.  **No Modification**: Unauthorized modification of the source code or creation of derivative works is prohibited.
+4.  **No Commercial Use**: Cannot be used for commercial purposes without written permission.
+
+For any licensing requests, collaboration, or permissions, please contact the developer directly.
+
+**Copyright © 2026 Nevzat Erdem. All Rights Reserved.**
