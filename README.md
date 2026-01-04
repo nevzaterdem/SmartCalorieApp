@@ -108,15 +108,4 @@ npm start
 
 ## 📄 Lisans ve Telif Hakları
 
-⚠️ **YASAL UYARI: BU PROJENİN TÜM HAKLARI SAKLIDIR.**
-
-Bu yazılımın, kaynak kodlarının, tasarımlarının ve belgelerinin mülkiyeti tamamen **Nevzat Erdem**'e aittir.
-
-1.  **Kopyalanamaz**: Bu projenin kodları izinsiz kopyalanamaz, çoğaltılamaz veya başka bir projede kullanılamaz.
-2.  **Dağıtılamaz**: Kaynak kodlar halka açık veya özel platformlarda izinsiz paylaşılamaz.
-3.  **Değiştirilemez**: Kaynak kod üzerinde izinsiz değişiklik yapılamaz, türev eserler oluşturulamaz.
-4.  **Ticari Kullanım Yasaktır**: Yazılı izin olmaksızın ticari amaçla kullanılamaz.
-
-Herhangi bir lisanslama talebi, iş birliği veya izin için doğrudan geliştirici ile iletişime geçiniz.
-
-**Copyright © 2026 Nevzat Erdem. Tüm Hakları Saklıdır.**
+MIT License
