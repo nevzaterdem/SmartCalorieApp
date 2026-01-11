@@ -108,15 +108,4 @@ npm start
 
 ## 📄 License and Copyrights
 
-⚠️ **LEGAL NOTICE: ALL RIGHTS RESERVED.**
-
-The ownership of this software, its source code, designs, and documentation belongs entirely to **Nevzat Erdem**.
-
-1.  **No Copying**: The code of this project cannot be copied, reproduced, or used in another project without permission.
-2.  **No Distribution**: Source codes cannot be shared on public or private platforms without permission.
-3.  **No Modification**: Unauthorized modification of the source code or creation of derivative works is prohibited.
-4.  **No Commercial Use**: Cannot be used for commercial purposes without written permission.
-
-For any licensing requests, collaboration, or permissions, please contact the developer directly.
-
-**Copyright © 2026 Nevzat Erdem. All Rights Reserved.**
+MIT License
