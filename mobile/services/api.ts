@@ -1,6 +1,6 @@
 // API Configuration
 // TODO: Deploy backend to Render.com and update this URL
-const API_BASE_URL = "http://192.168.1.147:3000"; // Local development - change to your IP
+const API_BASE_URL = "http://172.20.10.3:3000"; // Local development - updated dynamically
 
 // Types
 interface ApiFoodItem {

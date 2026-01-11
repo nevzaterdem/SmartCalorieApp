@@ -21,9 +21,9 @@ export const analyzeImage = async (imagePath: string) => {
   try {
     const imageBuffer = fs.readFileSync(imagePath);
     const base64Image = imageBuffer.toString("base64");
-    
-    // LİSTENDEN SEÇİLDİ: "gemini-flash-latest" (En güncel hızlı model)
-    const model = genAI.getGenerativeModel({ model: "gemini-flash-latest" });
+
+    // LİSTENDEN SEÇİLDİ: "gemini-2.5-flash" (2026 Güncel Model)
+    const model = genAI.getGenerativeModel({ model: "gemini-2.5-flash" });
 
     const prompt = `Bu yemeği analiz et. SADECE JSON formatında cevap ver. Markdown yok.
       Örnek Format: [{"food_name": "Elma", "estimated_calories": 50, "protein": 0, "carbs": 10, "fat": 0}]`;
@@ -32,12 +32,13 @@ export const analyzeImage = async (imagePath: string) => {
       prompt,
       { inlineData: { data: base64Image, mimeType: "image/png" } },
     ]);
-    
+
     const text = cleanJsonText(result.response.text());
     return JSON.parse(text);
 
   } catch (error: any) {
-    console.error("📸 Resim Analiz Hatası:", error.message);
+    console.error("📸 Resim Analiz Hatası (Detaylı):", JSON.stringify(error, null, 2));
+    console.error("Error Message:", error.message);
     return { error: "Analiz başarısız oldu." };
   }
 };
@@ -45,11 +46,11 @@ export const analyzeImage = async (imagePath: string) => {
 // --- Fonksiyon 2: Diyet Planı ---
 export const createDietPlan = async (userInfo: any) => {
   try {
-    // LİSTENDEN SEÇİLDİ: "gemini-flash-latest"
-    console.log("🤖 Yapay Zeka Devrede (Model: gemini-flash-latest)...");
-    
-    const model = genAI.getGenerativeModel({ model: "gemini-flash-latest" });
-    
+    // LİSTENDEN SEÇİLDİ: "gemini-2.5-flash"
+    console.log("🤖 Yapay Zeka Devrede (Model: gemini-2.5-flash)...");
+
+    const model = genAI.getGenerativeModel({ model: "gemini-2.5-flash" });
+
     const prompt = `
       Sen uzman bir diyetisyensin.
       Kullanıcı: ${userInfo.weight}kg, ${userInfo.height}cm, Cinsiyet: ${userInfo.gender}, Hedef: ${userInfo.goal}.
@@ -73,13 +74,13 @@ export const createDietPlan = async (userInfo: any) => {
     const result = await model.generateContent(prompt);
     const responseText = result.response.text();
 
-    console.log("📩 AI Cevabı Geldi!"); 
+    console.log("📩 AI Cevabı Geldi!");
 
     const cleanText = cleanJsonText(responseText);
     return JSON.parse(cleanText);
 
   } catch (error: any) {
-    console.error("❌ Model Hatası:", error.message);
+    console.error("❌ Model Hatası (Detaylı):", JSON.stringify(error, null, 2));
     throw new Error("Plan oluşturulamadı: " + error.message);
   }
 };
