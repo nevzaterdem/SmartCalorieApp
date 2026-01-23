@@ -1,41 +1,98 @@
-import { useState, useEffect } from "react";
-import { View, Text, TouchableOpacity, Image, StyleSheet, TextInput, ScrollView, Alert, ActivityIndicator, Switch, Linking } from "react-native";
-import { Camera, User, Settings, LogOut, ChevronRight, Bell, Moon, Shield, Globe, HelpCircle, Star, Ruler, Scale, Copy } from "lucide-react-native";
+import { useState, useEffect, useCallback } from "react";
+import { View, Text, TouchableOpacity, Image, StyleSheet, TextInput, ScrollView, Alert, ActivityIndicator, Switch, Linking, RefreshControl } from "react-native";
+import { Camera, User, Settings, LogOut, ChevronRight, Bell, Moon, Shield, Globe, HelpCircle, Star, Ruler, Scale, Copy, LogIn, UserPlus } from "lucide-react-native";
 import * as ImagePicker from "expo-image-picker";
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import { useRouter } from "expo-router";
 import * as Clipboard from 'expo-clipboard';
 import * as Notifications from 'expo-notifications';
 import { useTheme } from "../../context/ThemeContext";
+import { LinearGradient } from "expo-linear-gradient";
+import { isAuthenticated, getProfile, updateProfile, logout as apiLogout } from "../../services/api";
 
 export default function ProfileScreen() {
     const router = useRouter();
     const { isDarkMode, toggleDarkMode, colors } = useTheme();
 
-    const [loading, setLoading] = useState(false);
+    const [loading, setLoading] = useState(true);
+    const [saving, setSaving] = useState(false);
+    const [refreshing, setRefreshing] = useState(false);
+    const [isLoggedIn, setIsLoggedIn] = useState(false);
     const [notifications, setNotifications] = useState(true);
     const [waterReminder, setWaterReminder] = useState(true);
     const [mealReminder, setMealReminder] = useState(false);
 
-    // Mock user ID - in real app this comes from backend
-    const [userId] = useState(1);
+    const [userId, setUserId] = useState<number | null>(null);
 
     const [user, setUser] = useState({
         name: "Kullanıcı",
-        email: "nevzat@example.com",
+        email: "",
         avatar: null as string | null,
-        height: "180",
-        weight: "75",
-        age: "25",
+        height: "",
+        weight: "",
+        age: "",
     });
 
     useEffect(() => {
-        loadProfile();
-        loadSettings();
+        checkAuthAndLoad();
     }, []);
 
-    const loadProfile = async () => {
-        // TODO: Load from backend
+    const checkAuthAndLoad = async () => {
+        setLoading(true);
+        try {
+            const loggedIn = await isAuthenticated();
+            setIsLoggedIn(loggedIn);
+
+            if (loggedIn) {
+                // Get user data from backend
+                const profile = await getProfile();
+                if (profile) {
+                    setUser({
+                        name: profile.name || "Kullanıcı",
+                        email: profile.email || "",
+                        avatar: null,
+                        height: profile.height?.toString() || "",
+                        weight: profile.weight?.toString() || "",
+                        age: "",
+                    });
+                    setUserId(profile.id);
+                }
+            }
+
+            // Load from AsyncStorage as fallback
+            await loadLocalProfile();
+            await loadSettings();
+        } catch (e) {
+            console.log("Auth check error", e);
+        } finally {
+            setLoading(false);
+        }
+    };
+
+    const loadLocalProfile = async () => {
+        try {
+            const name = await AsyncStorage.getItem("userName");
+            const avatar = await AsyncStorage.getItem("userAvatar");
+            const height = await AsyncStorage.getItem("userHeight");
+            const weight = await AsyncStorage.getItem("userWeight");
+            const age = await AsyncStorage.getItem("userAge");
+            const email = await AsyncStorage.getItem("userEmail");
+            const id = await AsyncStorage.getItem("userId");
+
+            setUser(prev => ({
+                ...prev,
+                name: name || prev.name,
+                avatar: avatar || null,
+                height: height || prev.height,
+                weight: weight || prev.weight,
+                age: age || prev.age,
+                email: email || prev.email,
+            }));
+
+            if (id) setUserId(parseInt(id));
+        } catch (e) {
+            console.log("Profile load error", e);
+        }
     };
 
     const loadSettings = async () => {
@@ -51,6 +108,12 @@ export default function ProfileScreen() {
             console.log("Settings load error", e);
         }
     };
+
+    const onRefresh = useCallback(async () => {
+        setRefreshing(true);
+        await checkAuthAndLoad();
+        setRefreshing(false);
+    }, []);
 
     const saveSetting = async (key: string, value: boolean) => {
         try {
@@ -80,6 +143,10 @@ export default function ProfileScreen() {
         }
     };
 
+    const handleLogin = () => {
+        router.push("/auth");
+    };
+
     const handleLogout = async () => {
         Alert.alert(
             "Çıkış Yap",
@@ -90,8 +157,22 @@ export default function ProfileScreen() {
                     text: "Çıkış Yap",
                     style: "destructive",
                     onPress: async () => {
-                        await AsyncStorage.removeItem("authToken");
-                        router.replace("/(tabs)");
+                        await apiLogout();
+                        await AsyncStorage.multiRemove([
+                            "authToken", "userId", "userName", "userEmail",
+                            "userWeight", "userHeight", "userAge", "dailyCalorieGoal",
+                            "currentDietPlan"
+                        ]);
+                        setIsLoggedIn(false);
+                        setUser({
+                            name: "Kullanıcı",
+                            email: "",
+                            avatar: null,
+                            height: "",
+                            weight: "",
+                            age: "",
+                        });
+                        setUserId(null);
                         Alert.alert("Çıkış Yapıldı", "Başarıyla çıkış yaptınız.");
                     }
                 }
@@ -100,22 +181,50 @@ export default function ProfileScreen() {
     };
 
     const handleSave = async () => {
-        setLoading(true);
+        setSaving(true);
         try {
+            // Save to AsyncStorage
             await AsyncStorage.setItem("userName", user.name);
             await AsyncStorage.setItem("userHeight", user.height);
             await AsyncStorage.setItem("userWeight", user.weight);
-            setTimeout(() => {
-                setLoading(false);
-                Alert.alert("Başarılı", "Profil bilgileriniz güncellendi.");
-            }, 500);
+            await AsyncStorage.setItem("userAge", user.age);
+
+            // If logged in, also update backend
+            if (isLoggedIn) {
+                await updateProfile({
+                    name: user.name,
+                    weight: user.weight ? parseFloat(user.weight) : undefined,
+                    height: user.height ? parseFloat(user.height) : undefined,
+                    age: user.age ? parseInt(user.age) : undefined,
+                });
+            }
+
+            // Calculate and save calorie goal
+            if (user.weight && user.height) {
+                const weight = parseFloat(user.weight);
+                const height = parseFloat(user.height);
+                const age = parseInt(user.age) || 25;
+
+                const bmr = 88.362 + (13.397 * weight) + (4.799 * height) - (5.677 * age);
+                const tdee = bmr * 1.55;
+                const calorieGoal = Math.round(tdee - 500);
+
+                await AsyncStorage.setItem("dailyCalorieGoal", calorieGoal.toString());
+            }
+
+            setSaving(false);
+            Alert.alert(
+                "Başarılı ✅",
+                "Profil bilgileriniz güncellendi. Kalori hedefiniz yeniden hesaplandı."
+            );
         } catch (e) {
-            setLoading(false);
+            setSaving(false);
             Alert.alert("Hata", "Kaydedilemedi");
         }
     };
 
     const copyUserId = async () => {
+        if (!userId) return;
         await Clipboard.setStringAsync(`${user.name}#${userId}`);
         Alert.alert("Kopyalandı!", `${user.name}#${userId} panoya kopyalandı. Arkadaşlarınla paylaş!`);
     };
@@ -141,7 +250,6 @@ export default function ProfileScreen() {
         saveSetting("waterReminder", value);
 
         if (value) {
-            // Schedule water reminder every hour
             await Notifications.scheduleNotificationAsync({
                 content: {
                     title: "💧 Su İçme Zamanı!",
@@ -149,13 +257,13 @@ export default function ProfileScreen() {
                     sound: true,
                 },
                 trigger: {
-                    seconds: 3600, // Every hour
+                    type: 'timeInterval',
+                    seconds: 3600,
                     repeats: true,
                 } as any,
             });
             Alert.alert("Aktif", "Su hatırlatıcısı aktif edildi!");
         } else {
-            // Cancel water reminders
             const scheduled = await Notifications.getAllScheduledNotificationsAsync();
             for (const notif of scheduled) {
                 if (notif.content.title?.includes("Su")) {
@@ -170,7 +278,6 @@ export default function ProfileScreen() {
         saveSetting("mealReminder", value);
 
         if (value) {
-            // Schedule meal reminders at 8:00, 12:30, 19:00
             const mealTimes = [
                 { hour: 8, minute: 0, title: "🍳 Kahvaltı Zamanı!" },
                 { hour: 12, minute: 30, title: "🍽️ Öğle Yemeği Zamanı!" },
@@ -185,9 +292,9 @@ export default function ProfileScreen() {
                         sound: true,
                     },
                     trigger: {
+                        type: 'daily',
                         hour: meal.hour,
                         minute: meal.minute,
-                        repeats: true,
                     } as any,
                 });
             }
@@ -237,7 +344,6 @@ export default function ProfileScreen() {
                 { text: "Daha Sonra", style: "cancel" },
                 {
                     text: "Değerlendir ⭐", onPress: () => {
-                        // In production, this would open App Store
                         Alert.alert("Teşekkürler!", "Değerlendirmeniz için teşekkürler! 💚");
                     }
                 }
@@ -255,8 +361,142 @@ export default function ProfileScreen() {
         input: { backgroundColor: colors.inputBg, borderColor: colors.border },
     };
 
+    if (loading) {
+        return (
+            <View style={[styles.container, dynamicStyles.container, styles.loadingContainer]}>
+                <ActivityIndicator size="large" color="#10b981" />
+            </View>
+        );
+    }
+
+    // Not logged in - Show login prompt
+    if (!isLoggedIn) {
+        return (
+            <ScrollView
+                style={[styles.container, dynamicStyles.container]}
+                showsVerticalScrollIndicator={false}
+                refreshControl={
+                    <RefreshControl refreshing={refreshing} onRefresh={onRefresh} />
+                }
+            >
+                {/* Header */}
+                <LinearGradient
+                    colors={["#059669", "#10b981", "#34d399"]}
+                    style={styles.loginHeader}
+                >
+                    <View style={styles.loginLogoContainer}>
+                        <User color="#fff" size={48} />
+                    </View>
+                    <Text style={styles.loginHeaderTitle}>Hesabınıza Giriş Yapın</Text>
+                    <Text style={styles.loginHeaderSubtitle}>
+                        Tüm özelliklerden yararlanmak için giriş yapın
+                    </Text>
+                </LinearGradient>
+
+                {/* Login Card */}
+                <View style={[styles.loginCard, dynamicStyles.card]}>
+                    <Text style={[styles.loginCardTitle, dynamicStyles.text]}>
+                        Neden Giriş Yapmalıyım?
+                    </Text>
+
+                    <View style={styles.benefitItem}>
+                        <Text style={styles.benefitIcon}>💾</Text>
+                        <View style={styles.benefitText}>
+                            <Text style={[styles.benefitTitle, dynamicStyles.text]}>Verilerinizi Kaydedin</Text>
+                            <Text style={[styles.benefitDesc, dynamicStyles.textMuted]}>
+                                Diyet planlarınız ve ilerlemeniz güvenle saklanır
+                            </Text>
+                        </View>
+                    </View>
+
+                    <View style={styles.benefitItem}>
+                        <Text style={styles.benefitIcon}>📊</Text>
+                        <View style={styles.benefitText}>
+                            <Text style={[styles.benefitTitle, dynamicStyles.text]}>Öğün Takibi</Text>
+                            <Text style={[styles.benefitDesc, dynamicStyles.textMuted]}>
+                                Günlük öğünlerinizi takip edin ve ilerlemenizi görün
+                            </Text>
+                        </View>
+                    </View>
+
+                    <View style={styles.benefitItem}>
+                        <Text style={styles.benefitIcon}>👥</Text>
+                        <View style={styles.benefitText}>
+                            <Text style={[styles.benefitTitle, dynamicStyles.text]}>Arkadaş Ekle</Text>
+                            <Text style={[styles.benefitDesc, dynamicStyles.textMuted]}>
+                                Arkadaşlarınızla yarışın ve motive olun
+                            </Text>
+                        </View>
+                    </View>
+
+                    <View style={styles.benefitItem}>
+                        <Text style={styles.benefitIcon}>🔥</Text>
+                        <View style={styles.benefitText}>
+                            <Text style={[styles.benefitTitle, dynamicStyles.text]}>Seri Takibi</Text>
+                            <Text style={[styles.benefitDesc, dynamicStyles.textMuted]}>
+                                Günlük serinizi koruyun ve rozetler kazanın
+                            </Text>
+                        </View>
+                    </View>
+
+                    <TouchableOpacity onPress={handleLogin} activeOpacity={0.9}>
+                        <LinearGradient
+                            colors={["#059669", "#10b981"]}
+                            style={styles.loginButton}
+                        >
+                            <LogIn color="#fff" size={20} />
+                            <Text style={styles.loginButtonText}>Giriş Yap</Text>
+                        </LinearGradient>
+                    </TouchableOpacity>
+
+                    <TouchableOpacity onPress={handleLogin} style={styles.registerButton}>
+                        <UserPlus color="#10b981" size={20} />
+                        <Text style={styles.registerButtonText}>Hesap Oluştur</Text>
+                    </TouchableOpacity>
+                </View>
+
+                {/* Settings (available without login) */}
+                <View style={[styles.settingsSection, dynamicStyles.card]}>
+                    <Text style={[styles.sectionTitle, dynamicStyles.text]}>🎨 Görünüm</Text>
+
+                    <View style={[styles.settingRow, { borderBottomColor: colors.border }]}>
+                        <View style={styles.settingInfo}>
+                            <View style={[styles.settingIcon, { backgroundColor: isDarkMode ? '#374151' : '#1f2937' }]}>
+                                <Moon color="#fff" size={20} />
+                            </View>
+                            <View>
+                                <Text style={[styles.settingText, dynamicStyles.text]}>Karanlık Tema</Text>
+                                <Text style={[styles.settingDesc, dynamicStyles.textMuted]}>
+                                    {isDarkMode ? "Açık" : "Kapalı"}
+                                </Text>
+                            </View>
+                        </View>
+                        <Switch
+                            value={isDarkMode}
+                            onValueChange={toggleDarkMode}
+                            trackColor={{ false: colors.border, true: "#a7f3d0" }}
+                            thumbColor={isDarkMode ? "#10b981" : colors.textMuted}
+                        />
+                    </View>
+                </View>
+
+                <View style={styles.versionSection}>
+                    <Text style={[styles.versionText, dynamicStyles.textMuted]}>SmartCalorie AI v1.0.0</Text>
+                    <Text style={[styles.versionSubtext, { color: colors.border }]}>Made with ❤️</Text>
+                </View>
+            </ScrollView>
+        );
+    }
+
+    // Logged in - Show full profile
     return (
-        <ScrollView style={[styles.container, dynamicStyles.container]} showsVerticalScrollIndicator={false}>
+        <ScrollView
+            style={[styles.container, dynamicStyles.container]}
+            showsVerticalScrollIndicator={false}
+            refreshControl={
+                <RefreshControl refreshing={refreshing} onRefresh={onRefresh} />
+            }
+        >
             {/* Header */}
             <View style={[styles.header, dynamicStyles.card]}>
                 <Text style={[styles.headerTitle, dynamicStyles.text]}>Profilim</Text>
@@ -277,13 +517,18 @@ export default function ProfileScreen() {
                     </View>
                 </TouchableOpacity>
                 <Text style={[styles.userName, dynamicStyles.text]}>{user.name}</Text>
+                <Text style={[styles.userEmail, dynamicStyles.textMuted]}>{user.email}</Text>
 
                 {/* User ID Badge */}
-                <TouchableOpacity style={styles.userIdBadge} onPress={copyUserId}>
-                    <Text style={styles.userIdText}>{user.name}#{userId}</Text>
-                    <Copy color="#3b82f6" size={14} />
-                </TouchableOpacity>
-                <Text style={[styles.userIdHint, dynamicStyles.textMuted]}>ID'ni kopyalamak için dokun</Text>
+                {userId && (
+                    <>
+                        <TouchableOpacity style={styles.userIdBadge} onPress={copyUserId}>
+                            <Text style={styles.userIdText}>{user.name}#{userId}</Text>
+                            <Copy color="#3b82f6" size={14} />
+                        </TouchableOpacity>
+                        <Text style={[styles.userIdHint, dynamicStyles.textMuted]}>ID'ni kopyalamak için dokun</Text>
+                    </>
+                )}
             </View>
 
             {/* Form Section */}
@@ -333,8 +578,23 @@ export default function ProfileScreen() {
                     </View>
                 </View>
 
+                <View style={styles.inputGroup}>
+                    <Text style={[styles.label, dynamicStyles.textSecondary]}>Yaş</Text>
+                    <View style={[styles.inputContainer, dynamicStyles.input]}>
+                        <User color={colors.textMuted} size={20} />
+                        <TextInput
+                            style={[styles.input, dynamicStyles.text]}
+                            value={user.age}
+                            keyboardType="numeric"
+                            placeholder="25"
+                            onChangeText={(t) => setUser({ ...user, age: t })}
+                            placeholderTextColor={colors.textMuted}
+                        />
+                    </View>
+                </View>
+
                 <TouchableOpacity style={styles.saveButton} onPress={handleSave}>
-                    {loading ? <ActivityIndicator color="#fff" /> : <Text style={styles.saveButtonText}>Değişiklikleri Kaydet</Text>}
+                    {saving ? <ActivityIndicator color="#fff" /> : <Text style={styles.saveButtonText}>Değişiklikleri Kaydet</Text>}
                 </TouchableOpacity>
             </View>
 
@@ -492,6 +752,10 @@ const styles = StyleSheet.create({
     container: {
         flex: 1,
     },
+    loadingContainer: {
+        justifyContent: 'center',
+        alignItems: 'center',
+    },
     header: {
         paddingTop: 60,
         paddingBottom: 20,
@@ -501,6 +765,106 @@ const styles = StyleSheet.create({
         fontSize: 24,
         fontWeight: '800',
     },
+
+    // Login Screen Styles
+    loginHeader: {
+        paddingTop: 80,
+        paddingBottom: 60,
+        alignItems: 'center',
+        borderBottomLeftRadius: 40,
+        borderBottomRightRadius: 40,
+    },
+    loginLogoContainer: {
+        width: 100,
+        height: 100,
+        borderRadius: 30,
+        backgroundColor: 'rgba(255,255,255,0.2)',
+        justifyContent: 'center',
+        alignItems: 'center',
+        marginBottom: 16,
+    },
+    loginHeaderTitle: {
+        fontSize: 24,
+        fontWeight: '900',
+        color: '#fff',
+    },
+    loginHeaderSubtitle: {
+        fontSize: 14,
+        color: '#d1fae5',
+        marginTop: 8,
+        textAlign: 'center',
+        paddingHorizontal: 40,
+    },
+    loginCard: {
+        marginHorizontal: 20,
+        marginTop: -30,
+        borderRadius: 24,
+        padding: 24,
+        shadowColor: '#000',
+        shadowOffset: { width: 0, height: 4 },
+        shadowOpacity: 0.1,
+        shadowRadius: 20,
+        elevation: 5,
+    },
+    loginCardTitle: {
+        fontSize: 18,
+        fontWeight: '700',
+        marginBottom: 20,
+        textAlign: 'center',
+    },
+    benefitItem: {
+        flexDirection: 'row',
+        alignItems: 'flex-start',
+        marginBottom: 16,
+    },
+    benefitIcon: {
+        fontSize: 24,
+        marginRight: 12,
+    },
+    benefitText: {
+        flex: 1,
+    },
+    benefitTitle: {
+        fontSize: 15,
+        fontWeight: '600',
+    },
+    benefitDesc: {
+        fontSize: 13,
+        marginTop: 2,
+    },
+    loginButton: {
+        flexDirection: 'row',
+        alignItems: 'center',
+        justifyContent: 'center',
+        paddingVertical: 16,
+        borderRadius: 12,
+        marginTop: 16,
+        gap: 8,
+    },
+    loginButtonText: {
+        color: '#fff',
+        fontSize: 18,
+        fontWeight: '700',
+    },
+    registerButton: {
+        flexDirection: 'row',
+        alignItems: 'center',
+        justifyContent: 'center',
+        paddingVertical: 16,
+        borderRadius: 12,
+        marginTop: 12,
+        backgroundColor: '#ecfdf5',
+        borderWidth: 2,
+        borderColor: '#10b981',
+        gap: 8,
+    },
+    registerButtonText: {
+        color: '#10b981',
+        fontSize: 16,
+        fontWeight: '700',
+    },
+
+    // Avatar Section
     avatarSection: {
         alignItems: 'center',
         paddingBottom: 24,
@@ -537,7 +901,11 @@ const styles = StyleSheet.create({
     userName: {
         fontSize: 22,
         fontWeight: '700',
-        marginBottom: 8,
+        marginBottom: 4,
+    },
+    userEmail: {
+        fontSize: 14,
+        marginBottom: 12,
     },
     userIdBadge: {
         flexDirection: 'row',
@@ -559,6 +927,8 @@ const styles = StyleSheet.create({
         fontSize: 12,
         marginTop: 6,
     },
+
+    // Form Section
     formSection: {
         marginHorizontal: 16,
         padding: 20,
@@ -611,6 +981,8 @@ const styles = StyleSheet.create({
         fontWeight: '700',
         fontSize: 15,
     },
+
+    // Settings Section
     settingsSection: {
         marginHorizontal: 16,
         padding: 20,

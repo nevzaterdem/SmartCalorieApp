@@ -12,6 +12,7 @@ function AppContent() {
             <StatusBar style={isDarkMode ? "light" : "dark"} />
             <Stack screenOptions={{ headerShown: false }}>
                 <Stack.Screen name="(tabs)" options={{ headerShown: false }} />
+                <Stack.Screen name="auth" options={{ headerShown: false, presentation: 'modal' }} />
             </Stack>
         </>
     );

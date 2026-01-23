@@ -1,6 +1,9 @@
 // API Configuration
-// TODO: Deploy backend to Render.com and update this URL
-const API_BASE_URL = "http://172.20.10.3:3000"; // Local development - updated dynamically
+import AsyncStorage from '@react-native-async-storage/async-storage';
+
+// Local development - use your computer's IP address
+// For production, update to your deployed backend URL (e.g., render.com)
+export const API_BASE_URL = "http://192.168.1.42:3000";
 
 // Types
 interface ApiFoodItem {
@@ -35,6 +38,25 @@ export interface UserInfo {
     goal: string;
 }
 
+export interface UserProfile {
+    id: number;
+    email: string;
+    name: string;
+    weight?: number;
+    height?: number;
+    dailyCalorieGoal?: number;
+    streak?: number;
+}
+
+// Helper function to get auth headers
+async function getHeaders(): Promise<HeadersInit> {
+    const token = await AsyncStorage.getItem("authToken");
+    return {
+        "Content-Type": "application/json",
+        ...(token ? { "Authorization": `Bearer ${token}` } : {})
+    };
+}
+
 // Helper function to convert image URI to base64
 async function uriToBase64(uri: string): Promise<string> {
     const response = await fetch(uri);
@@ -43,18 +65,18 @@ async function uriToBase64(uri: string): Promise<string> {
         const reader = new FileReader();
         reader.onloadend = () => {
             const base64 = reader.result as string;
-            resolve(base64.split(",")[1]); // Remove data:image/...;base64, prefix
+            resolve(base64.split(",")[1]);
         };
         reader.onerror = reject;
         reader.readAsDataURL(blob);
     });
 }
 
-// API Functions
+// ============ AI FUNCTIONS ============
+
 export async function analyzeImage(imageUri: string): Promise<FoodItem[]> {
     const formData = new FormData();
 
-    // Get the file name and type from URI
     const uriParts = imageUri.split(".");
     const fileType = uriParts[uriParts.length - 1];
 
@@ -103,8 +125,10 @@ export async function createDietPlan(userInfo: UserInfo): Promise<DietPlan> {
     return response.json();
 }
 
-// Food & Meal APIs
+// ============ MEAL FUNCTIONS ============
+
 export async function logMeal(item: FoodItem): Promise<{ msg: string }> {
+    const headers = await getHeaders();
     const payload = {
         foodName: item.name,
         calories: item.calories,
@@ -113,33 +137,42 @@ export async function logMeal(item: FoodItem): Promise<{ msg: string }> {
         fat: item.fat
     };
 
-    // Now pointing to real backend route (which has soft-auth)
     const response = await fetch(`${API_BASE_URL}/meals`, {
         method: "POST",
-        headers: {
-            "Content-Type": "application/json",
-        },
+        headers,
         body: JSON.stringify(payload),
     });
 
     if (!response.ok) {
-        throw new Error("Kaydetme başarısız oldu");
+        const errorData = await response.json().catch(() => ({}));
+        throw new Error(errorData.error || "Kaydetme başarısız oldu");
     }
 
     return response.json();
 }
 
 export async function getTodayMeals(): Promise<any[]> {
-    const response = await fetch(`${API_BASE_URL}/meals/today`);
-    if (!response.ok) throw new Error("Öğünler alınamadı");
+    const headers = await getHeaders();
+    const response = await fetch(`${API_BASE_URL}/meals/today`, { headers });
+    if (!response.ok) return [];
     return response.json();
 }
 
-// Water APIs
+export async function deleteMeal(id: number): Promise<void> {
+    const headers = await getHeaders();
+    await fetch(`${API_BASE_URL}/meals/${id}`, {
+        method: "DELETE",
+        headers,
+    });
+}
+
+// ============ WATER FUNCTIONS ============
+
 export async function addWaterLog(amount: number): Promise<any> {
+    const headers = await getHeaders();
     const response = await fetch(`${API_BASE_URL}/water`, {
         method: "POST",
-        headers: { "Content-Type": "application/json" },
+        headers,
         body: JSON.stringify({ amount }),
     });
     if (!response.ok) throw new Error("Su kaydedilemedi");
@@ -147,26 +180,36 @@ export async function addWaterLog(amount: number): Promise<any> {
 }
 
 export async function getWaterLogs(): Promise<{ logs: any[]; total: number }> {
-    const response = await fetch(`${API_BASE_URL}/water/today`);
-    if (!response.ok) throw new Error("Su verisi alınamadı");
+    const headers = await getHeaders();
+    const response = await fetch(`${API_BASE_URL}/water/today`, { headers });
+    if (!response.ok) return { logs: [], total: 0 };
     return response.json();
 }
 
-// Export base URL for debugging
-export { API_BASE_URL };
+// ============ DASHBOARD FUNCTIONS ============
 
-// AUTH & HEADERS
-import AsyncStorage from '@react-native-async-storage/async-storage';
-
-async function getHeaders() {
-    const token = await AsyncStorage.getItem("authToken");
-    return {
-        "Content-Type": "application/json",
-        ...(token ? { "Authorization": `Bearer ${token}` } : {})
-    };
+export async function getDailyStats(): Promise<{
+    calories: { consumed: number; goal: number; remaining: number };
+    water: { consumed: number; goal: number };
+    streak: number;
+    todayMeals: any[];
+}> {
+    const headers = await getHeaders();
+    const response = await fetch(`${API_BASE_URL}/dashboard/daily`, { headers });
+    if (!response.ok) {
+        // Return defaults if failed
+        return {
+            calories: { consumed: 0, goal: 2000, remaining: 2000 },
+            water: { consumed: 0, goal: 2000 },
+            streak: 0,
+            todayMeals: []
+        };
+    }
+    return response.json();
 }
 
-// SOCIAL API
+// ============ SOCIAL FUNCTIONS ============
+
 export async function searchUser(query: string) {
     const headers = await getHeaders();
     const res = await fetch(`${API_BASE_URL}/social/search`, {
@@ -175,7 +218,7 @@ export async function searchUser(query: string) {
         body: JSON.stringify({ query })
     });
     if (!res.ok) throw new Error("Kullanıcı bulunamadı");
-    return res.json(); // Returns array of users now
+    return res.json();
 }
 
 export async function followUser(targetId: number) {
@@ -194,4 +237,205 @@ export async function getLeaderboard() {
     const res = await fetch(`${API_BASE_URL}/social/leaderboard`, { headers });
     if (!res.ok) return [];
     return res.json();
+}
+
+// ============ PROFILE FUNCTIONS ============
+
+export async function updateProfile(data: {
+    name?: string;
+    weight?: number;
+    height?: number;
+    age?: number;
+    dailyCalorieGoal?: number;
+}): Promise<any> {
+    const headers = await getHeaders();
+    const response = await fetch(`${API_BASE_URL}/auth/profile`, {
+        method: "PUT",
+        headers,
+        body: JSON.stringify(data),
+    });
+    if (!response.ok) throw new Error("Profil güncellenemedi");
+    return response.json();
+}
+
+export async function getProfile(): Promise<UserProfile | null> {
+    const headers = await getHeaders();
+    const response = await fetch(`${API_BASE_URL}/auth/profile`, { headers });
+    if (!response.ok) return null;
+    return response.json();
+}
+
+// ============ CALORIE GOAL CALCULATOR ============
+
+export function calculateDailyCalorieGoal(
+    weight: number,
+    height: number,
+    age: number,
+    gender: 'male' | 'female',
+    goal: 'lose' | 'maintain' | 'gain' | 'muscle'
+): number {
+    // Harris-Benedict Equation for BMR
+    let bmr: number;
+    if (gender === 'male') {
+        bmr = 88.362 + (13.397 * weight) + (4.799 * height) - (5.677 * age);
+    } else {
+        bmr = 447.593 + (9.247 * weight) + (3.098 * height) - (4.330 * age);
+    }
+
+    // Activity multiplier (assuming moderate activity)
+    const tdee = bmr * 1.55;
+
+    // Adjust based on goal
+    switch (goal) {
+        case 'lose':
+            return Math.round(tdee - 500); // 500 cal deficit
+        case 'gain':
+            return Math.round(tdee + 300); // 300 cal surplus
+        case 'muscle':
+            return Math.round(tdee + 400); // More for muscle building
+        case 'maintain':
+        default:
+            return Math.round(tdee);
+    }
+}
+
+// ============ STREAK FUNCTIONS ============
+
+export async function getStreak(): Promise<number> {
+    const headers = await getHeaders();
+    try {
+        const response = await fetch(`${API_BASE_URL}/dashboard/streak`, { headers });
+        if (!response.ok) return 0;
+        const data = await response.json();
+        return data.streak || 0;
+    } catch {
+        return 0;
+    }
+}
+
+// Helper to check if user is logged in
+export async function isAuthenticated(): Promise<boolean> {
+    const token = await AsyncStorage.getItem("authToken");
+    return !!token;
+}
+
+// Logout helper
+export async function logout(): Promise<void> {
+    await AsyncStorage.multiRemove([
+        "authToken",
+        "userId",
+        "userName",
+        "userEmail"
+    ]);
+}
+
+// ============ DIET PLAN FUNCTIONS ============
+
+export interface SavedDietPlan {
+    id: number;
+    breakfast: {
+        title: string;
+        items: string[];
+        calories: number;
+        completed?: boolean;
+    };
+    lunch: {
+        title: string;
+        items: string[];
+        calories: number;
+        completed?: boolean;
+    };
+    snack: {
+        title: string;
+        items: string[];
+        calories: number;
+        completed?: boolean;
+    };
+    dinner: {
+        title: string;
+        items: string[];
+        calories: number;
+        completed?: boolean;
+    };
+    total_calories: number;
+    advice: string;
+    createdAt?: string;
+}
+
+export interface DietProgress {
+    completedMeals: string[];
+    completedCalories: number;
+    totalMeals: number;
+    totalCalories: number;
+}
+
+// Diyet planı oluştur ve kaydet
+export async function createAndSaveDietPlan(userInfo: UserInfo): Promise<SavedDietPlan> {
+    const headers = await getHeaders();
+    const response = await fetch(`${API_BASE_URL}/diet/create`, {
+        method: "POST",
+        headers,
+        body: JSON.stringify(userInfo),
+    });
+
+    if (!response.ok) {
+        const error = await response.json().catch(() => ({}));
+        throw new Error(error.error || "Diyet planı oluşturulamadı");
+    }
+
+    return response.json();
+}
+
+// Aktif diyet planını getir
+export async function getActiveDietPlan(): Promise<{ plan: SavedDietPlan | null; todayProgress: DietProgress | null }> {
+    const headers = await getHeaders();
+    const response = await fetch(`${API_BASE_URL}/diet/active`, { headers });
+
+    if (!response.ok) {
+        return { plan: null, todayProgress: null };
+    }
+
+    return response.json();
+}
+
+// Öğünü tamamla
+export async function completeDietMeal(mealType: 'breakfast' | 'lunch' | 'snack' | 'dinner', completed: boolean = true): Promise<{
+    success: boolean;
+    message: string;
+    mealType: string;
+    calories?: number;
+}> {
+    const headers = await getHeaders();
+    const response = await fetch(`${API_BASE_URL}/diet/complete-meal`, {
+        method: "POST",
+        headers,
+        body: JSON.stringify({ mealType, completed }),
+    });
+
+    if (!response.ok) {
+        throw new Error("Öğün güncellenemedi");
+    }
+
+    return response.json();
+}
+
+// Diyet geçmişini getir
+export async function getDietHistory(): Promise<{
+    history: Array<{
+        id: number;
+        goal: string;
+        totalCalories: number;
+        isActive: boolean;
+        createdAt: string;
+        completionRate: number;
+    }>;
+}> {
+    const headers = await getHeaders();
+    const response = await fetch(`${API_BASE_URL}/diet/history`, { headers });
+
+    if (!response.ok) {
+        return { history: [] };
+    }
+
+    return response.json();
 }

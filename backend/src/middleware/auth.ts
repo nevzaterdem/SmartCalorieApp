@@ -16,10 +16,7 @@ export const authenticateToken = (
     const token = authHeader && authHeader.split(" ")[1]; // Bearer TOKEN
 
     if (!token) {
-        // PROTOTYPE MODE: Default to User ID 1 if no token
-        // This allows testing the app without full auth
-        req.userId = 1;
-        next();
+        res.status(401).json({ error: "Giriş yapmalısınız (Token yok)" });
         return;
     }
 

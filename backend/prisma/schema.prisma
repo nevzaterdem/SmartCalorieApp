@@ -3,8 +3,8 @@ generator client {
 }
 
 datasource db {
-  provider = "postgresql"
-  url      = env("DATABASE_URL")
+  provider = "sqlite"
+  url      = "file:./dev.db"
 }
 
 model User {
@@ -19,6 +19,7 @@ model User {
   activityLevel    Float    @default(1.2) 
   dailyCalorieGoal Int?   
   dailyWaterGoal   Int      @default(2000) // ml
+  streak           Int      @default(0)
   createdAt        DateTime @default(now())
   updatedAt        DateTime @updatedAt
   
@@ -29,6 +30,7 @@ model User {
   weightLogs    WeightLog[]
   favoriteMeals FavoriteMeal[]
   achievements  Achievement[]
+  dietPlans     DietPlan[]
 
   // Social Relations
   followedBy    Friendship[] @relation("following")
@@ -101,4 +103,50 @@ model Achievement {
   user       User     @relation(fields: [userId], references: [id])
   type       String   // "streak_7", "first_meal", "water_goal"
   unlockedAt DateTime @default(now())
+}
+
+// Kullanıcının aktif diyet planı
+model DietPlan {
+  id              Int      @id @default(autoincrement())
+  userId          Int
+  user            User     @relation(fields: [userId], references: [id])
+  
+  // Kullanıcı bilgileri (plan oluşturulurken)
+  weight          Float
+  height          Float
+  gender          String
+  goal            String
+  
+  // Öğünler (JSON olarak saklanır)
+  breakfastItems  String   // JSON array
+  breakfastCals   Int
+  lunchItems      String   // JSON array
+  lunchCals       Int
+  snackItems      String   // JSON array
+  snackCals       Int
+  dinnerItems     String   // JSON array
+  dinnerCals      Int
+  
+  totalCalories   Int
+  advice          String?
+  
+  isActive        Boolean  @default(true)
+  createdAt       DateTime @default(now())
+  updatedAt       DateTime @updatedAt
+  
+  // Öğün tamamlama kayıtları
+  completions     DietMealCompletion[]
+}
+
+// Öğün tamamlama takibi
+model DietMealCompletion {
+  id          Int      @id @default(autoincrement())
+  dietPlanId  Int
+  dietPlan    DietPlan @relation(fields: [dietPlanId], references: [id])
+  
+  mealType    String   // "breakfast", "lunch", "snack", "dinner"
+  completed   Boolean  @default(true)
+  date        DateTime @default(now())
+  
+  @@unique([dietPlanId, mealType, date])
 }

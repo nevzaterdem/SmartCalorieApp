@@ -10,6 +10,7 @@ import mealsRoutes from "./routes/meals";
 import waterRoutes from "./routes/water";
 import exerciseRoutes from "./routes/exercise";
 import socialRoutes from "./routes/social";
+import dietRoutes from "./routes/diet";
 import { authenticateToken, AuthRequest } from "./middleware/auth";
 
 const app = express();
@@ -46,6 +47,7 @@ app.use("/meals", mealsRoutes);
 app.use("/water", waterRoutes);
 app.use("/exercise", exerciseRoutes);
 app.use("/social", socialRoutes);
+app.use("/diet", dietRoutes);
 
 // ============ AI ROUTES (Keep original for backward compatibility) ============
 

@@ -27,8 +27,8 @@ router.post("/search", authenticateToken, async (req: AuthRequest, res: any) => 
             users = await prisma.user.findMany({
                 where: {
                     OR: [
-                        { email: { contains: query, mode: 'insensitive' as Prisma.QueryMode } },
-                        { name: { contains: query, mode: 'insensitive' as Prisma.QueryMode } }
+                        { email: { contains: query } },
+                        { name: { contains: query } }
                     ],
                     NOT: { id: req.userId } // Exclude self
                 },

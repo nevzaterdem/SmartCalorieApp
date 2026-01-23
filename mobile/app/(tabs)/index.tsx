@@ -1,4 +1,6 @@
 import { useState, useEffect, useCallback } from "react";
+import { useRouter } from "expo-router";
+import { useFocusEffect } from "@react-navigation/native";
 import {
     View,
     Text,
@@ -38,7 +40,6 @@ import {
     ChevronRight,
     Target,
     UserPlus,
-    MessageCircle,
     LogIn,
     Calculator,
     Lightbulb,
@@ -54,11 +55,11 @@ import {
     Activity,
     Dumbbell,
     Utensils,
-    Send,
     Search,
 } from "lucide-react-native";
-import { analyzeImage, logMeal, createDietPlan, getTodayMeals, addWaterLog, getWaterLogs, getLeaderboard, searchUser, followUser, FoodItem, DietPlan, UserInfo } from "../../services/api";
+import { analyzeImage, logMeal, createDietPlan, getTodayMeals, addWaterLog, getWaterLogs, getLeaderboard, searchUser, followUser, getStreak, getDailyStats, FoodItem, DietPlan, UserInfo, calculateDailyCalorieGoal } from "../../services/api";
 import { useTheme } from "../../context/ThemeContext";
+import AsyncStorage from "@react-native-async-storage/async-storage";
 
 const { width } = Dimensions.get('window');
 
@@ -122,14 +123,7 @@ export default function HomeScreen() {
     const [showFriendsModal, setShowFriendsModal] = useState(false);
     const [showDietModal, setShowDietModal] = useState(false);
 
-    // Messaging State
-    const [showMessageModal, setShowMessageModal] = useState(false);
-    const [selectedFriend, setSelectedFriend] = useState<any>(null);
-    const [messageText, setMessageText] = useState("");
-    const [chatMessages, setChatMessages] = useState<any[]>([
-        { id: 1, text: "Selam! Bugün nasılsın?", isMe: false, time: "10:30" },
-        { id: 2, text: "İyiyim, sen?", isMe: true, time: "10:32" },
-    ]);
+
 
     // Diet State
     const [dietLoading, setDietLoading] = useState(false);
@@ -161,7 +155,6 @@ export default function HomeScreen() {
     const progressSwipe = createSwipeHandler(() => setShowProgressModal(false));
     const notifSwipe = createSwipeHandler(() => setShowNotificationsModal(false));
     const friendsSwipe = createSwipeHandler(() => setShowFriendsModal(false));
-    const messageSwipe = createSwipeHandler(() => setShowMessageModal(false));
     const dietSwipe = createSwipeHandler(() => setShowDietModal(false));
 
     const handleCreateDiet = async () => {
@@ -175,6 +168,16 @@ export default function HomeScreen() {
             const plan = await createDietPlan(userInfo);
             if (plan.breakfast) {
                 setDietPlan(plan);
+
+                // Kalori hedefini kaydet ve senkronize et
+                if (plan.total_calories) {
+                    await AsyncStorage.setItem("dailyCalorieGoal", plan.total_calories.toString());
+                    setDailyCalorieGoal(plan.total_calories);
+                    Alert.alert(
+                        "Plan Oluşturuldu! 🎉",
+                        `Günlük kalori hedefiniz ${plan.total_calories} kcal olarak güncellendi.`
+                    );
+                }
             } else {
                 Alert.alert("Hata", "Plan oluşturulamadı");
             }
@@ -221,6 +224,7 @@ export default function HomeScreen() {
                 sound: true,
             },
             trigger: {
+                type: 'timeInterval',
                 seconds: 60 * 60, // 1 hour
                 repeats: true,
             } as any,
@@ -228,48 +232,22 @@ export default function HomeScreen() {
         Alert.alert("Başarılı", "Su hatırlatıcısı her saat başı size bildirim gönderecek!");
     };
 
-    const handleOpenChat = (friend: any) => {
-        setSelectedFriend(friend);
-        setShowFriendsModal(false);
-        setShowMessageModal(true);
-    };
 
-    const handleSendMessage = () => {
-        if (!messageText.trim()) return;
-
-        const newMessage = {
-            id: Date.now(),
-            text: messageText,
-            isMe: true,
-            time: new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })
-        };
-
-        setChatMessages([...chatMessages, newMessage]);
-        setMessageText("");
-
-        // Mock reply
-        setTimeout(() => {
-            const reply = {
-                id: Date.now() + 1,
-                text: "Harika! Aynen devam et 🔥",
-                isMe: false,
-                time: new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })
-            };
-            setChatMessages(prev => [...prev, reply]);
-        }, 2000);
-    };
 
     // Calorie tracking
     const [meals, setMeals] = useState<any[]>([]);
     const [consumedCalories, setConsumedCalories] = useState(0);
-    const dailyCalorieGoal = 2000;
+    const [dailyCalorieGoal, setDailyCalorieGoal] = useState(2000);
     const remainingCalories = dailyCalorieGoal - consumedCalories;
     const calorieProgress = Math.min((consumedCalories / dailyCalorieGoal) * 100, 100);
+
+    // Streak tracking
+    const [streak, setStreak] = useState(0);
 
     // Water tracking
     const [waterLogs, setWaterLogs] = useState<any[]>([]);
     const [waterAmount, setWaterAmount] = useState(0);
-    const waterGoal = 2000;
+    const [waterGoal, setWaterGoal] = useState(2000);
 
     const [notifications, setNotifications] = useState(mockNotifications);
     const unreadNotifications = notifications.filter(n => !n.read).length;
@@ -280,6 +258,46 @@ export default function HomeScreen() {
     const [searchEmail, setSearchEmail] = useState("");
     const [foundUser, setFoundUser] = useState<any>(null);
     const [isSearching, setIsSearching] = useState(false);
+
+    // Load user settings
+    const loadUserSettings = useCallback(async () => {
+        try {
+            // Try to load calorie goal from storage
+            const savedGoal = await AsyncStorage.getItem("dailyCalorieGoal");
+            if (savedGoal) {
+                setDailyCalorieGoal(parseInt(savedGoal));
+            }
+
+            // Try to load water goal
+            const savedWaterGoal = await AsyncStorage.getItem("dailyWaterGoal");
+            if (savedWaterGoal) {
+                setWaterGoal(parseInt(savedWaterGoal));
+            }
+
+            // Calculate goal if we have user data
+            const weight = await AsyncStorage.getItem("userWeight");
+            const height = await AsyncStorage.getItem("userHeight");
+            const age = await AsyncStorage.getItem("userAge");
+            const gender = await AsyncStorage.getItem("userGender");
+            const goal = await AsyncStorage.getItem("userGoal");
+
+            if (weight && height && !savedGoal) {
+                const calculatedGoal = calculateDailyCalorieGoal(
+                    parseFloat(weight),
+                    parseFloat(height),
+                    parseInt(age || "25"),
+                    (gender === "Kadın" ? "female" : "male"),
+                    goal === "Kilo Vermek" ? "lose" :
+                        goal === "Kilo Almak" ? "gain" :
+                            goal === "Kas Yapmak" ? "muscle" : "maintain"
+                );
+                setDailyCalorieGoal(calculatedGoal);
+                await AsyncStorage.setItem("dailyCalorieGoal", calculatedGoal.toString());
+            }
+        } catch (e) {
+            console.log("Settings load error", e);
+        }
+    }, []);
 
     // Fetch Data
     const fetchData = useCallback(async () => {
@@ -294,15 +312,24 @@ export default function HomeScreen() {
             const waterData = await getWaterLogs();
             setWaterLogs(waterData.logs);
             setWaterAmount(waterData.total);
-            setWaterLogs(waterData.logs);
-            setWaterAmount(waterData.total);
+
+            // Streak
+            try {
+                const streakData = await getStreak();
+                setStreak(streakData);
+            } catch (e) {
+                // Calculate local streak if backend fails
+                if (todayMeals.length > 0) {
+                    setStreak(prev => Math.max(prev, 1));
+                }
+            }
 
             // Friends
             try {
                 const leaderboard = await getLeaderboard();
                 if (leaderboard && leaderboard.length > 0) {
                     setFriends(leaderboard);
-                    setFriendCount(leaderboard.length - 1); // Exclude self
+                    setFriendCount(leaderboard.length - 1);
                 }
             } catch (e) { console.log('Social fetch failed', e); }
 
@@ -312,11 +339,29 @@ export default function HomeScreen() {
     }, []);
 
     useEffect(() => {
+        loadUserSettings();
         fetchData();
-    }, [fetchData]);
+    }, [fetchData, loadUserSettings]);
+
+    // Ekran focus olduğunda hedefi yeniden yükle (diyet senkronizasyonu)
+    useFocusEffect(
+        useCallback(() => {
+            const syncCalorieGoal = async () => {
+                const savedGoal = await AsyncStorage.getItem("dailyCalorieGoal");
+                if (savedGoal) {
+                    setDailyCalorieGoal(parseInt(savedGoal));
+                }
+            };
+            syncCalorieGoal();
+            fetchData(); // Verileri de yenile
+        }, [fetchData])
+    );
+
+    const router = useRouter();
 
     const handleLogin = () => {
-        Alert.alert("Giriş Yap", "Demo kullanıcı ile giriş yapıldı! (Prototype Mode)");
+        // Navigate to auth screen
+        router.push("/auth");
     };
 
     const handleSearchFriend = async () => {
@@ -600,19 +645,19 @@ export default function HomeScreen() {
                                 <Trophy color="#fff" size={20} />
                             </LinearGradient>
                             <View>
-                                <Text style={styles.widgetTitle}>İlerleme</Text>
-                                <Text style={styles.widgetSubtitle}>7 gün seri 🔥</Text>
+                                <Text style={styles.widgetTitle}>Seri</Text>
+                                <Text style={styles.widgetSubtitle}>{streak} gün 🔥</Text>
                             </View>
                         </View>
                         <View style={styles.weekDays}>
                             {[1, 2, 3, 4, 5, 6, 7].map((_, i) => (
-                                <View key={i} style={[styles.dayBox, i < 6 && styles.dayBoxComplete]}>
-                                    {i < 6 && <Check color="#fff" size={10} />}
+                                <View key={i} style={[styles.dayBox, i < Math.min(streak, 7) && styles.dayBoxComplete]}>
+                                    {i < Math.min(streak, 7) && <Check color="#fff" size={10} />}
                                 </View>
                             ))}
                         </View>
                         <View style={styles.widgetFooter}>
-                            <View />
+                            <Text style={styles.widgetFooterText}>{streak > 0 ? "Harika gidiyorsun!" : "Bugün başla!"}</Text>
                             <ChevronRight color="#9ca3af" size={14} />
                         </View>
                     </TouchableOpacity>
@@ -1005,12 +1050,9 @@ export default function HomeScreen() {
                                         <Text style={styles.friendName}>{friend.name}</Text>
                                         <Text style={styles.friendStats}>{friend.calories} kcal • {friend.streak} gün seri</Text>
                                     </View>
-                                    <TouchableOpacity
-                                        style={styles.messageButton}
-                                        onPress={() => handleOpenChat(friend)}
-                                    >
-                                        <MessageCircle color="#10b981" size={18} />
-                                    </TouchableOpacity>
+                                    <View style={styles.friendRank}>
+                                        <Trophy color="#f59e0b" size={18} />
+                                    </View>
                                 </View>
                             ))}
                         </ScrollView>
@@ -1018,59 +1060,6 @@ export default function HomeScreen() {
                 </View>
             </Modal>
 
-            {/* Message Modal */}
-            <Modal visible={showMessageModal} animationType="slide" transparent>
-                <KeyboardAvoidingView
-                    style={styles.modalOverlay}
-                    behavior={Platform.OS === 'ios' ? 'padding' : 'height'}
-                    keyboardVerticalOffset={0}
-                >
-                    <View style={[styles.modalContent, { height: '80%' }]}>
-                        <View {...messageSwipe.panHandlers} style={styles.swipeArea}>
-                            <View style={styles.modalHandle} />
-                            <Text style={styles.swipeHint}>Aşağı kaydırarak kapat</Text>
-                        </View>
-                        <View style={styles.modalHeader}>
-                            <View style={{ flexDirection: 'row', alignItems: 'center', gap: 12 }}>
-                                <TouchableOpacity onPress={() => { setShowMessageModal(false); setShowFriendsModal(true); }} style={styles.closeButton}>
-                                    <X color="#fff" size={20} />
-                                </TouchableOpacity>
-                                <View>
-                                    <Text style={styles.modalTitle}>{selectedFriend?.name || "Sohbet"}</Text>
-                                    <Text style={{ fontSize: 12, color: '#10b981' }}>Çevrimiçi</Text>
-                                </View>
-                            </View>
-                        </View>
-
-                        <ScrollView
-                            style={styles.chatContainer}
-                            contentContainerStyle={{ paddingBottom: 20 }}
-                            showsVerticalScrollIndicator={false}
-                            keyboardShouldPersistTaps="handled"
-                        >
-                            {chatMessages.map(msg => (
-                                <View key={msg.id} style={[styles.chatBubble, msg.isMe ? styles.chatBubbleMe : styles.chatBubbleOther]}>
-                                    <Text style={[styles.chatText, msg.isMe && styles.chatTextMe]}>{msg.text}</Text>
-                                    <Text style={[styles.chatTime, msg.isMe && styles.chatTimeMe]}>{msg.time}</Text>
-                                </View>
-                            ))}
-                        </ScrollView>
-
-                        <View style={styles.chatInputContainer}>
-                            <TextInput
-                                style={styles.chatInput}
-                                placeholder="Mesaj yaz..."
-                                placeholderTextColor="#9ca3af"
-                                value={messageText}
-                                onChangeText={setMessageText}
-                            />
-                            <TouchableOpacity style={styles.sendButton} onPress={handleSendMessage}>
-                                <Send color="#fff" size={20} />
-                            </TouchableOpacity>
-                        </View>
-                    </View>
-                </KeyboardAvoidingView>
-            </Modal>
             {/* Diet Modal */}
             <Modal visible={showDietModal} animationType="slide" transparent>
                 <View style={styles.modalOverlay}>
@@ -2133,8 +2122,10 @@ const styles = StyleSheet.create({
         fontSize: 12,
         color: '#9ca3af',
     },
-    messageButton: {
+    friendRank: {
         padding: 8,
+        backgroundColor: '#fef3c7',
+        borderRadius: 8,
     },
     // Diet Styles
     dietScrollView: {
@@ -2324,67 +2315,6 @@ const styles = StyleSheet.create({
         color: '#fff',
         fontWeight: '600',
         fontSize: 14,
-    },
-    // Chat Styles
-    chatContainer: {
-        flex: 1,
-        padding: 16,
-    },
-    chatBubble: {
-        maxWidth: '80%',
-        padding: 12,
-        borderRadius: 16,
-        marginBottom: 12,
-    },
-    chatBubbleMe: {
-        alignSelf: 'flex-end',
-        backgroundColor: '#10b981',
-        borderBottomRightRadius: 4,
-    },
-    chatBubbleOther: {
-        alignSelf: 'flex-start',
-        backgroundColor: '#f3f4f6',
-        borderBottomLeftRadius: 4,
-    },
-    chatText: {
-        fontSize: 15,
-        color: '#1f2937',
-    },
-    chatTextMe: {
-        color: '#fff',
-    },
-    chatTime: {
-        fontSize: 10,
-        color: '#9ca3af',
-        alignSelf: 'flex-end',
-        marginTop: 4,
-    },
-    chatTimeMe: {
-        color: '#d1fae5',
-    },
-    chatInputContainer: {
-        flexDirection: 'row',
-        alignItems: 'center',
-        padding: 16,
-        borderTopWidth: 1,
-        borderTopColor: '#f3f4f6',
-        gap: 12,
-    },
-    chatInput: {
-        flex: 1,
-        backgroundColor: '#f3f4f6',
-        padding: 12,
-        borderRadius: 24,
-        fontSize: 15,
-        color: '#1f2937',
-    },
-    sendButton: {
-        backgroundColor: '#10b981',
-        width: 44,
-        height: 44,
-        borderRadius: 22,
-        alignItems: 'center',
-        justifyContent: 'center',
     },
     // Add Friend Styles
     addFriendSection: {

@@ -137,4 +137,66 @@ router.get("/weekly", authenticateToken, async (req: AuthRequest, res: Response)
     }
 });
 
+// Get streak (consecutive days with meals logged)
+router.get("/streak", authenticateToken, async (req: AuthRequest, res: Response): Promise<any> => {
+    try {
+        const userId = req.userId!;
+
+        // Get all meal dates for the user
+        const meals = await prisma.mealLog.findMany({
+            where: { userId },
+            select: { createdAt: true },
+            orderBy: { createdAt: "desc" },
+        });
+
+        if (meals.length === 0) {
+            return res.json({ streak: 0 });
+        }
+
+        // Calculate streak
+        let streak = 0;
+        const today = new Date();
+        today.setHours(0, 0, 0, 0);
+
+        // Get unique dates
+        const dates = new Set<string>();
+        meals.forEach(meal => {
+            dates.add(meal.createdAt.toISOString().split("T")[0]);
+        });
+
+        // Check consecutive days backwards from today
+        let checkDate = new Date(today);
+        while (true) {
+            const dateStr = checkDate.toISOString().split("T")[0];
+            if (dates.has(dateStr)) {
+                streak++;
+                checkDate.setDate(checkDate.getDate() - 1);
+            } else if (streak === 0) {
+                // If today has no meals, check yesterday
+                checkDate.setDate(checkDate.getDate() - 1);
+                const yesterdayStr = checkDate.toISOString().split("T")[0];
+                if (dates.has(yesterdayStr)) {
+                    streak++;
+                    checkDate.setDate(checkDate.getDate() - 1);
+                } else {
+                    break;
+                }
+            } else {
+                break;
+            }
+        }
+
+        // Update user's streak in database
+        await prisma.user.update({
+            where: { id: userId },
+            data: { streak },
+        });
+
+        res.json({ streak });
+    } catch (error) {
+        console.error("Streak error:", error);
+        res.status(500).json({ error: "Seri hesaplanamadı", streak: 0 });
+    }
+});
+
 export default router;
