@@ -32,8 +32,8 @@ SmartCalorieApp is an end-to-end integrated ecosystem designed to help users ach
 This project is built with the latest technologies, prioritizing scalability and performance.
 
 | Area | Technologies |
-|------|--------------|
-| **Backend** | Node.js, Express.js, TypeScript, Prisma ORM, PostgreSQL (Recommended) |
+|------|--------------| 
+| **Backend** | Node.js, Express.js, TypeScript, Prisma ORM, SQLite |
 | **Frontend** | React, Vite, TailwindCSS, Electron, Recharts, Lucide Icons |
 | **Mobile** | React Native, Expo SDK 54, Expo Router, NativeWind |
 | **Artificial Intelligence** | Google Gemini AI |
@@ -73,15 +73,25 @@ Before starting the backend service, you need to configure the environment varia
 cd backend
 npm install
 ```
+
 Create a `.env` file:
 ```env
-DATABASE_URL="postgresql://user:password@localhost:5432/smartcalorie"
-JWT_SECRET="your_strong_secret_key"
+# SQLite veritabanı Prisma tarafından otomatik oluşturulur (backend/prisma/dev.db)
+# Harici DATABASE_URL gerekmez
+
+# JWT Secret - Güvenli bir anahtar oluşturun
+JWT_SECRET="your_strong_secret_key_here"
+
+# Google Gemini API Key - https://makersuite.google.com/app/apikey adresinden alın
 GEMINI_API_KEY="your_google_gemini_api_key"
+
+# Sunucu portu (opsiyonel, varsayılan: 3000)
 PORT=3000
 ```
-Then start the service:
+
+Initialize the database and start the service:
 ```bash
+npx prisma db push
 npm run dev
 ```
 
