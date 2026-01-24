@@ -64,11 +64,8 @@ export default function AuthScreen() {
             await AsyncStorage.setItem("userName", data.user.name || name);
             await AsyncStorage.setItem("userEmail", data.user.email);
 
-            Alert.alert(
-                "Başarılı! 🎉",
-                isLogin ? "Giriş yapıldı!" : "Hesap oluşturuldu!",
-                [{ text: "Tamam", onPress: () => router.replace("/(tabs)") }]
-            );
+            // Direkt ana ekrana yönlendir
+            router.replace("/(tabs)");
         } catch (error: any) {
             Alert.alert("Hata", error.message || "Bir hata oluştu");
         } finally {
