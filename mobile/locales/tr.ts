@@ -191,6 +191,11 @@ export default {
     no_history: "Henüz geçmiş yok",
     login_for_history: "Geçmiş takibi için giriş yapmalısınız",
 
+    // Diet Header
+    diet_tracking: "Diyet Takibi",
+    ai_powered_program: "AI Destekli Kişisel Program",
+    my_plan: "Planım",
+
     // Auth Screen
     tagline: "Yapay Zeka ile Akıllı Beslenme",
     error_email_password: "E-posta ve şifre gerekli",

@@ -191,6 +191,11 @@ export default {
     no_history: "No history yet",
     login_for_history: "Sign in to track history",
 
+    // Diet Header
+    diet_tracking: "Diet Tracking",
+    ai_powered_program: "AI Powered Personal Program",
+    my_plan: "My Plan",
+
     // Auth Screen
     tagline: "Smart Nutrition with AI",
     error_email_password: "Email and password required",

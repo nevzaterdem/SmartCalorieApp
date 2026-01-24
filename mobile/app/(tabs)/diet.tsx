@@ -600,8 +600,8 @@ export default function DietScreen() {
                         <Calculator color="#ffffff" size={28} />
                     </View>
                     <View>
-                        <Text style={styles.headerTitle}>Diyet Takibi</Text>
-                        <Text style={styles.headerSubtitle}>AI Destekli Kişisel Program</Text>
+                        <Text style={styles.headerTitle}>{t('diet_tracking')}</Text>
+                        <Text style={styles.headerSubtitle}>{t('ai_powered_program')}</Text>
                     </View>
                 </View>
             </LinearGradient>
@@ -614,7 +614,7 @@ export default function DietScreen() {
                 >
                     <Utensils color={activeTab === 'plan' ? "#7c3aed" : "#9ca3af"} size={16} />
                     <Text style={[styles.tabText, activeTab === 'plan' && styles.tabTextActive]}>
-                        Planım
+                        {t('my_plan')}
                     </Text>
                 </TouchableOpacity>
                 <TouchableOpacity
@@ -623,7 +623,7 @@ export default function DietScreen() {
                 >
                     <Sparkles color={activeTab === 'create' ? "#7c3aed" : "#9ca3af"} size={16} />
                     <Text style={[styles.tabText, activeTab === 'create' && styles.tabTextActive]}>
-                        Oluştur
+                        {t('create_new')}
                     </Text>
                 </TouchableOpacity>
                 <TouchableOpacity
@@ -635,7 +635,7 @@ export default function DietScreen() {
                 >
                     <History color={activeTab === 'history' ? "#7c3aed" : "#9ca3af"} size={16} />
                     <Text style={[styles.tabText, activeTab === 'history' && styles.tabTextActive]}>
-                        Geçmiş
+                        {t('history')}
                     </Text>
                 </TouchableOpacity>
             </View>

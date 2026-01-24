@@ -2,9 +2,11 @@ import { Tabs } from "expo-router";
 import { View } from "react-native";
 import { Camera, CalendarCheck, User } from "lucide-react-native";
 import { useTheme } from "../../context/ThemeContext";
+import { useLanguage } from "../../context/LanguageContext";
 
 export default function TabsLayout() {
     const { isDarkMode, colors } = useTheme();
+    const { t } = useLanguage();
 
     return (
         <Tabs
@@ -30,7 +32,7 @@ export default function TabsLayout() {
             <Tabs.Screen
                 name="index"
                 options={{
-                    title: "Analiz",
+                    title: t('analyze'),
                     tabBarIcon: ({ color, focused }) => (
                         <View
                             style={{
@@ -47,7 +49,7 @@ export default function TabsLayout() {
             <Tabs.Screen
                 name="diet"
                 options={{
-                    title: "Diyet",
+                    title: t('diet'),
                     tabBarIcon: ({ color, focused }) => (
                         <View
                             style={{
@@ -65,7 +67,7 @@ export default function TabsLayout() {
             <Tabs.Screen
                 name="profile"
                 options={{
-                    title: "Profil",
+                    title: t('profile'),
                     tabBarIcon: ({ color, focused }) => (
                         <View
                             style={{
