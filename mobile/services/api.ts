@@ -335,6 +335,77 @@ export async function logout(): Promise<void> {
     ]);
 }
 
+// ============ ACHIEVEMENTS FUNCTIONS ============
+
+export interface Achievement {
+    type: string;
+    name: string;
+    icon: string;
+    description: string;
+    category: string;
+    earned: boolean;
+    unlockedAt: string | null;
+}
+
+export interface AchievementsResponse {
+    achievements: Achievement[];
+    grouped: {
+        başlangıç: Achievement[];
+        seri: Achievement[];
+        su: Achievement[];
+        kalori: Achievement[];
+        sosyal: Achievement[];
+        özel: Achievement[];
+    };
+    stats: {
+        earned: number;
+        total: number;
+        percentage: number;
+    };
+}
+
+export async function getAchievements(): Promise<AchievementsResponse | null> {
+    const headers = await getHeaders();
+    try {
+        const response = await fetch(`${API_BASE_URL}/achievements`, { headers });
+        if (!response.ok) return null;
+        return response.json();
+    } catch (e) {
+        console.log("Achievements fetch error:", e);
+        return null;
+    }
+}
+
+export async function checkAchievements(): Promise<{ newAchievements: Achievement[]; count: number } | null> {
+    const headers = await getHeaders();
+    try {
+        const response = await fetch(`${API_BASE_URL}/achievements/check`, {
+            method: "POST",
+            headers
+        });
+        if (!response.ok) return null;
+        return response.json();
+    } catch (e) {
+        console.log("Achievement check error:", e);
+        return null;
+    }
+}
+
+export async function notifyPhotoAnalyzed(): Promise<Achievement | null> {
+    const headers = await getHeaders();
+    try {
+        const response = await fetch(`${API_BASE_URL}/achievements/photo-analyzed`, {
+            method: "POST",
+            headers
+        });
+        if (!response.ok) return null;
+        const data = await response.json();
+        return data.newAchievement;
+    } catch (e) {
+        return null;
+    }
+}
+
 // ============ DIET PLAN FUNCTIONS ============
 
 export interface SavedDietPlan {

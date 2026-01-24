@@ -57,22 +57,15 @@ import {
     Utensils,
     Search,
 } from "lucide-react-native";
-import { analyzeImage, logMeal, createDietPlan, getTodayMeals, addWaterLog, getWaterLogs, getLeaderboard, getFriends, searchUser, followUser, getStreak, getDailyStats, FoodItem, DietPlan, UserInfo, calculateDailyCalorieGoal } from "../../services/api";
+import { analyzeImage, logMeal, createDietPlan, getTodayMeals, addWaterLog, getWaterLogs, getLeaderboard, getFriends, searchUser, followUser, getStreak, getDailyStats, FoodItem, DietPlan, UserInfo, calculateDailyCalorieGoal, getAchievements, checkAchievements, notifyPhotoAnalyzed, Achievement } from "../../services/api";
 import { useTheme } from "../../context/ThemeContext";
 import AsyncStorage from "@react-native-async-storage/async-storage";
 
 const { width } = Dimensions.get('window');
 
-// Mock data
-// Mock data (Notifications ve Achievements için backend henüz hazır değil)
+// Mock data (Notifications için backend henüz hazır değil)
 const mockNotifications = [
     { id: 1, type: "reminder", title: "Su içme zamanı! 💧", desc: "Günlük hedefinize ulaşmak için su için.", time: "Şimdi", read: false },
-];
-
-const mockAchievements = [
-    { id: 1, name: "İlk Adım", icon: "🚀", earned: true },
-    { id: 2, name: "3 Gün Seri", icon: "🔥", earned: false },
-    { id: 3, name: "Su Ustası", icon: "💧", earned: false },
 ];
 
 const goals = [
@@ -236,6 +229,10 @@ export default function HomeScreen() {
     const [foundUser, setFoundUser] = useState<any>(null);
     const [isSearching, setIsSearching] = useState(false);
 
+    // Achievements State
+    const [achievements, setAchievements] = useState<Achievement[]>([]);
+    const [achievementStats, setAchievementStats] = useState({ earned: 0, total: 0, percentage: 0 });
+
     // Load user settings
     const loadUserSettings = useCallback(async () => {
         try {
@@ -317,6 +314,17 @@ export default function HomeScreen() {
                     }
                 }
             } catch (e) { console.log('Social fetch failed', e); }
+
+            // Achievements
+            try {
+                const achievementsData = await getAchievements();
+                if (achievementsData) {
+                    setAchievements(achievementsData.achievements);
+                    setAchievementStats(achievementsData.stats);
+                }
+                // Yeni başarıları kontrol et
+                await checkAchievements();
+            } catch (e) { console.log('Achievements fetch failed', e); }
 
         } catch (error) {
             console.error("Data fetch error:", error);
@@ -907,10 +915,10 @@ export default function HomeScreen() {
                             ))}
                         </View>
 
-                        <Text style={styles.achievementsTitle}>Rozetler</Text>
+                        <Text style={styles.achievementsTitle}>Rozetler ({achievementStats.earned}/{achievementStats.total})</Text>
                         <View style={styles.achievementsGrid}>
-                            {mockAchievements.map(achievement => (
-                                <View key={achievement.id} style={[styles.achievementItem, !achievement.earned && styles.achievementItemLocked]}>
+                            {achievements.slice(0, 6).map((achievement: Achievement) => (
+                                <View key={achievement.type} style={[styles.achievementItem, !achievement.earned && styles.achievementItemLocked]}>
                                     <Text style={styles.achievementIcon}>{achievement.icon}</Text>
                                     <Text style={styles.achievementName}>{achievement.name}</Text>
                                 </View>

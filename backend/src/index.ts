@@ -11,6 +11,7 @@ import waterRoutes from "./routes/water";
 import exerciseRoutes from "./routes/exercise";
 import socialRoutes from "./routes/social";
 import dietRoutes from "./routes/diet";
+import achievementsRoutes from "./routes/achievements";
 import { authenticateToken, AuthRequest } from "./middleware/auth";
 
 const app = express();
@@ -33,7 +34,8 @@ app.get("/", (req, res) => {
       "/water",
       "/exercise",
       "/analyze",
-      "/create-diet"
+      "/create-diet",
+      "/achievements"
     ]
   });
 });
@@ -48,6 +50,7 @@ app.use("/water", waterRoutes);
 app.use("/exercise", exerciseRoutes);
 app.use("/social", socialRoutes);
 app.use("/diet", dietRoutes);
+app.use("/achievements", achievementsRoutes);
 
 // ============ AI ROUTES (Keep original for backward compatibility) ============
 
