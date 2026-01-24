@@ -50,24 +50,26 @@ import {
     isAuthenticated
 } from "../../services/api";
 import { useTheme } from "../../context/ThemeContext";
+import { useLanguage } from "../../context/LanguageContext";
 import AsyncStorage from "@react-native-async-storage/async-storage";
 
 const goals = [
-    { id: "Kilo Vermek", label: "Kilo Ver", icon: TrendingDown, color: "#ef4444" },
-    { id: "Kilo Almak", label: "Kilo Al", icon: TrendingUp, color: "#22c55e" },
-    { id: "Formu Korumak", label: "Formu Koru", icon: Activity, color: "#3b82f6" },
-    { id: "Kas Yapmak", label: "Kas Yap", icon: Dumbbell, color: "#a855f7" },
+    { id: "Kilo Vermek", label: "lose_weight", icon: TrendingDown, color: "#ef4444" },
+    { id: "Kilo Almak", label: "gain_weight", icon: TrendingUp, color: "#22c55e" },
+    { id: "Formu Korumak", label: "maintain", icon: Activity, color: "#3b82f6" },
+    { id: "Kas Yapmak", label: "build_muscle", icon: Dumbbell, color: "#a855f7" },
 ];
-
-const mealConfig = {
-    breakfast: { title: "Kahvaltı", icon: Sunrise, color: "#f97316", bg: "#fff7ed" },
-    lunch: { title: "Öğle Yemeği", icon: Sun, color: "#eab308", bg: "#fefce8" },
-    snack: { title: "Ara Öğün", icon: Coffee, color: "#a855f7", bg: "#faf5ff" },
-    dinner: { title: "Akşam Yemeği", icon: Moon, color: "#3b82f6", bg: "#eff6ff" },
-};
 
 export default function DietScreen() {
     const { isDarkMode, colors } = useTheme();
+    const { t } = useLanguage();
+
+    const mealConfig = {
+        breakfast: { title: t('breakfast'), icon: Sunrise, color: "#f97316", bg: "#fff7ed" },
+        lunch: { title: t('lunch'), icon: Sun, color: "#eab308", bg: "#fefce8" },
+        snack: { title: t('snack'), icon: Coffee, color: "#a855f7", bg: "#faf5ff" },
+        dinner: { title: t('dinner'), icon: Moon, color: "#3b82f6", bg: "#eff6ff" },
+    };
 
     const [loading, setLoading] = useState(false);
     const [refreshing, setRefreshing] = useState(false);
@@ -163,7 +165,7 @@ export default function DietScreen() {
 
     const handleCreateDiet = async () => {
         if (!userInfo.weight || !userInfo.height) {
-            Alert.alert("Eksik Bilgi", "Lütfen kilo ve boy bilgilerinizi girin.");
+            Alert.alert(t('missing_info'), t('enter_details'));
             return;
         }
         setLoading(true);
@@ -183,8 +185,8 @@ export default function DietScreen() {
                 await AsyncStorage.setItem("dailyCalorieGoal", plan.total_calories.toString());
 
                 Alert.alert(
-                    "Plan Oluşturuldu! 🎉",
-                    `Günlük kalori hedefiniz ${plan.total_calories} kcal olarak belirlendi. Öğünleri tamamladığınızda işaretleyin!`
+                    t('plan_created'),
+                    t('plan_created_desc').replace('{calories}', plan.total_calories.toString())
                 );
                 setActiveTab('plan');
                 setShowForm(false);
@@ -370,7 +372,7 @@ export default function DietScreen() {
                                         styles.completeButtonText,
                                         isCompleted && styles.completeButtonTextActive
                                     ]}>
-                                        {isCompleted ? "Tamamlandı" : "Tamamla"}
+                                        {isCompleted ? t('completed') : t('complete')}
                                     </Text>
                                 </TouchableOpacity>
                             </View>
@@ -401,7 +403,7 @@ export default function DietScreen() {
                     }}
                     style={styles.newPlanButton}
                 >
-                    <Text style={styles.newPlanText}>🔄 Yeni Plan Oluştur</Text>
+                    <Text style={styles.newPlanText}>🔄 {t('regenerate_plan')}</Text>
                 </TouchableOpacity>
             </View>
         );
@@ -410,8 +412,8 @@ export default function DietScreen() {
     const renderCreateView = () => (
         <View style={styles.formCard}>
             <View style={styles.formHeader}>
-                <Text style={styles.formTitle}>Profilini Oluştur</Text>
-                <Text style={styles.formSubtitle}>Sana özel diyet planı için bilgilerini gir</Text>
+                <Text style={styles.formTitle}>{t('create_profile')}</Text>
+                <Text style={styles.formSubtitle}>{t('enter_info_for_diet')}</Text>
             </View>
 
             {/* Weight & Height Row */}
@@ -419,7 +421,7 @@ export default function DietScreen() {
                 <View style={styles.inputHalf}>
                     <View style={styles.labelRow}>
                         <Scale color="#6b7280" size={16} />
-                        <Text style={styles.label}>Kilo</Text>
+                        <Text style={styles.label}>{t('weight')}</Text>
                     </View>
                     <View style={styles.inputContainer}>
                         <TextInput
@@ -437,7 +439,7 @@ export default function DietScreen() {
                 <View style={styles.inputHalf}>
                     <View style={styles.labelRow}>
                         <Ruler color="#6b7280" size={16} />
-                        <Text style={styles.label}>Boy</Text>
+                        <Text style={styles.label}>{t('height')}</Text>
                     </View>
                     <View style={styles.inputContainer}>
                         <TextInput
@@ -453,11 +455,10 @@ export default function DietScreen() {
                 </View>
             </View>
 
-            {/* Gender Selection */}
             <View style={styles.section}>
                 <View style={styles.labelRow}>
                     <User color="#6b7280" size={16} />
-                    <Text style={styles.label}>Cinsiyet</Text>
+                    <Text style={styles.label}>{t('gender')}</Text>
                 </View>
                 <View style={styles.row}>
                     <TouchableOpacity
@@ -465,7 +466,7 @@ export default function DietScreen() {
                         style={[styles.genderButton, userInfo.gender === "Erkek" && styles.genderButtonMale]}
                     >
                         <Text style={[styles.genderText, userInfo.gender === "Erkek" && styles.genderTextActive]}>
-                            👨 Erkek
+                            👨 {t('male')}
                         </Text>
                     </TouchableOpacity>
                     <TouchableOpacity
@@ -473,7 +474,7 @@ export default function DietScreen() {
                         style={[styles.genderButton, { marginLeft: 8 }, userInfo.gender === "Kadın" && styles.genderButtonFemale]}
                     >
                         <Text style={[styles.genderText, userInfo.gender === "Kadın" && styles.genderTextActive]}>
-                            👩 Kadın
+                            👩 {t('female')}
                         </Text>
                     </TouchableOpacity>
                 </View>
@@ -483,7 +484,7 @@ export default function DietScreen() {
             <View style={styles.section}>
                 <View style={styles.labelRow}>
                     <Target color="#6b7280" size={16} />
-                    <Text style={styles.label}>Hedefin</Text>
+                    <Text style={styles.label}>{t('goal')}</Text>
                 </View>
                 <View style={styles.goalsGrid}>
                     {goals.map((goal) => {
@@ -500,7 +501,7 @@ export default function DietScreen() {
                                         <Icon color={isSelected ? "#ffffff" : goal.color} size={18} />
                                     </View>
                                     <Text style={[styles.goalText, isSelected && styles.goalTextActive]}>
-                                        {goal.label}
+                                        {t(goal.label)}
                                     </Text>
                                 </View>
                             </TouchableOpacity>
@@ -520,14 +521,14 @@ export default function DietScreen() {
                     {loading ? (
                         <>
                             <ActivityIndicator color="#ffffff" />
-                            <Text style={styles.createButtonText}>AI Oluşturuyor...</Text>
+                            <Text style={styles.createButtonText}>{t('creating_ai')}</Text>
                         </>
                     ) : (
                         <>
                             <View style={styles.createButtonIcon}>
                                 <Sparkles color="#ffffff" size={22} />
                             </View>
-                            <Text style={styles.createButtonText}>Diyet Planımı Oluştur</Text>
+                            <Text style={styles.createButtonText}>{t('create_your_plan')}</Text>
                         </>
                     )}
                 </LinearGradient>
@@ -538,7 +539,7 @@ export default function DietScreen() {
                     onPress={() => setActiveTab('plan')}
                     style={styles.backButton}
                 >
-                    <Text style={styles.backButtonText}>← Mevcut Plana Dön</Text>
+                    <Text style={styles.backButtonText}>← {t('back_to_current')}</Text>
                 </TouchableOpacity>
             )}
         </View>
@@ -546,18 +547,18 @@ export default function DietScreen() {
 
     const renderHistoryView = () => (
         <View>
-            <Text style={styles.historyTitle}>Diyet Geçmişiniz</Text>
+            <Text style={styles.historyTitle}>{t('diet_history')}</Text>
             {!isLoggedIn ? (
                 <View style={styles.loginPrompt}>
                     <History color="#a855f7" size={48} />
                     <Text style={styles.loginPromptText}>
-                        Geçmiş takibi için giriş yapmalısınız
+                        {t('login_for_history')}
                     </Text>
                 </View>
             ) : dietHistory.length === 0 ? (
                 <View style={styles.emptyHistory}>
                     <Calendar color="#9ca3af" size={48} />
-                    <Text style={styles.emptyHistoryText}>Henüz geçmiş yok</Text>
+                    <Text style={styles.emptyHistoryText}>{t('no_history')}</Text>
                 </View>
             ) : (
                 dietHistory.map((item, index) => (

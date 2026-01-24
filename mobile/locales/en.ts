@@ -123,10 +123,81 @@ export default {
     meal_reminder_title: "Meal Time! 🍽️",
     meal_reminder_body: "Don't forget to log your meal!",
 
+    today_meals: "Today's Meals",
+    no_meals_yet: "No meals logged yet. Add your first meal!",
+    add_to_diary: "Add to Diary",
+    analyze_results: "Analysis Results",
+    detected_food: "Detected Foods",
+    nutritional_values: "Nutritional Values (100g)",
+
+    // Macros
+    protein: "Protein",
+    carbs: "Carbs",
+    fat: "Fat",
+
+    // Social Modal
+    social_title: "Social & Leaderboard",
+    find_friends: "Find Friends",
+    your_friends: "Your Friends",
+    streak_leaderboard: "Streak Leaderboard",
+
+    // Warnings
+    login_required: "You must be logged in to use this feature.",
+
     // Settings
     appearance: "Appearance",
     privacy_security: "Privacy & Security",
     help_support: "Help & Support",
     rate_app: "Rate App",
     other_settings: "Other Settings",
+
+    // Widgets
+    water_tracking: "Water Tracking",
+    great_job: "You're doing great!",
+    start_today: "Start today!",
+    ai_analyze_desc: "Instantly calculate calories with AI",
+    analyze_photo: "Analyze Photo",
+    no_camera_permission: "Camera permission required",
+
+    // Modals
+    today_logs: "Today's Logs",
+    no_water_yet: "No water logged today.",
+    set_reminder: "Set Reminder",
+    progress_badges: "Progress & Badges",
+    streak_days: "days streak",
+    no_notifications: "No notifications.",
+    swipe_to_close: "Swipe down to close",
+
+    // Diet Screen
+    missing_info: "Missing Information",
+    enter_details: "Please enter your weight and height.",
+    plan_created: "Plan Created! 🎉",
+    plan_created_desc: "Your daily calorie goal has been calculated and plan created. Good luck!",
+    daily_plan: "Daily Plan",
+    create_new: "Create",
+    history: "History",
+    active_plan: "Active Plan",
+    create_your_plan: "Create Diet Plan",
+    ai_plan_desc: "Let our AI nutritionist create the best diet plan for you.",
+    calculate_create: "Calculate & Create",
+    regenerate_plan: "Regenerate Plan",
+    regenerate_confirm: "Your current plan will be deleted and a new one will be created. Confirm?",
+    mark_completed: "Mark as Completed",
+    create_profile: "Create Your Profile",
+    enter_info_for_diet: "Enter your details for a personalized diet plan",
+    creating_ai: "AI is Creating...",
+    back_to_current: "Back to Current Plan",
+    diet_history: "Diet History",
+    no_history: "No history yet",
+    login_for_history: "Sign in to track history",
+
+    // Auth Screen
+    tagline: "Smart Nutrition with AI",
+    error_email_password: "Email and password required",
+    error_name: "Name required",
+    error_generic: "An error occurred",
+    welcome: "Welcome!",
+    create_account: "Create Account",
+    login_desc: "Sign in to your account",
+    register_desc: "First step to a healthy life",
 };

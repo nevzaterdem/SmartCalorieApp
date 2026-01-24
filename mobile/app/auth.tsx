@@ -16,9 +16,11 @@ import { useRouter } from "expo-router";
 import AsyncStorage from "@react-native-async-storage/async-storage";
 import { ChefHat, Mail, Lock, User, Eye, EyeOff } from "lucide-react-native";
 import { API_BASE_URL } from "../services/api";
+import { useLanguage } from "../context/LanguageContext";
 
 export default function AuthScreen() {
     const router = useRouter();
+    const { t } = useLanguage();
     const [isLogin, setIsLogin] = useState(true);
     const [loading, setLoading] = useState(false);
     const [showPassword, setShowPassword] = useState(false);
@@ -29,12 +31,12 @@ export default function AuthScreen() {
 
     const handleSubmit = async () => {
         if (!email || !password) {
-            Alert.alert("Hata", "E-posta ve şifre gerekli");
+            Alert.alert(t('error'), t('error_email_password'));
             return;
         }
 
         if (!isLogin && !name) {
-            Alert.alert("Hata", "İsim gerekli");
+            Alert.alert(t('error'), t('error_name'));
             return;
         }
 
@@ -67,7 +69,7 @@ export default function AuthScreen() {
             // Direkt ana ekrana yönlendir
             router.replace("/(tabs)");
         } catch (error: any) {
-            Alert.alert("Hata", error.message || "Bir hata oluştu");
+            Alert.alert(t('error'), error.message || t('error_generic'));
         } finally {
             setLoading(false);
         }
@@ -99,19 +101,19 @@ export default function AuthScreen() {
                     </View>
                     <Text style={styles.logoText}>SmartCalorie AI</Text>
                     <Text style={styles.tagline}>
-                        Yapay Zeka ile Akıllı Beslenme
+                        {t('tagline')}
                     </Text>
                 </LinearGradient>
 
                 {/* Form */}
                 <View style={styles.formContainer}>
                     <Text style={styles.title}>
-                        {isLogin ? "Hoş Geldiniz!" : "Hesap Oluşturun"}
+                        {isLogin ? t('welcome') : t('create_account')}
                     </Text>
                     <Text style={styles.subtitle}>
                         {isLogin
-                            ? "Hesabınıza giriş yapın"
-                            : "Sağlıklı yaşama ilk adım"}
+                            ? t('login_desc')
+                            : t('register_desc')}
                     </Text>
 
                     {/* Name Input (only for register) */}
@@ -120,7 +122,7 @@ export default function AuthScreen() {
                             <User color="#9ca3af" size={20} />
                             <TextInput
                                 style={styles.input}
-                                placeholder="Ad Soyad"
+                                placeholder={t('name')}
                                 placeholderTextColor="#9ca3af"
                                 value={name}
                                 onChangeText={setName}
@@ -134,7 +136,7 @@ export default function AuthScreen() {
                         <Mail color="#9ca3af" size={20} />
                         <TextInput
                             style={styles.input}
-                            placeholder="E-posta"
+                            placeholder={t('email')}
                             placeholderTextColor="#9ca3af"
                             value={email}
                             onChangeText={setEmail}
@@ -148,7 +150,7 @@ export default function AuthScreen() {
                         <Lock color="#9ca3af" size={20} />
                         <TextInput
                             style={styles.input}
-                            placeholder="Şifre"
+                            placeholder={t('password')}
                             placeholderTextColor="#9ca3af"
                             value={password}
                             onChangeText={setPassword}
@@ -179,7 +181,7 @@ export default function AuthScreen() {
                                 <ActivityIndicator color="#fff" />
                             ) : (
                                 <Text style={styles.submitButtonText}>
-                                    {isLogin ? "Giriş Yap" : "Kayıt Ol"}
+                                    {isLogin ? t('login') : t('register')}
                                 </Text>
                             )}
                         </LinearGradient>
@@ -192,10 +194,10 @@ export default function AuthScreen() {
                     >
                         <Text style={styles.toggleText}>
                             {isLogin
-                                ? "Hesabınız yok mu? "
-                                : "Zaten hesabınız var mı? "}
+                                ? t('no_account') + " "
+                                : t('have_account') + " "}
                             <Text style={styles.toggleTextBold}>
-                                {isLogin ? "Kayıt Olun" : "Giriş Yapın"}
+                                {isLogin ? t('register') : t('login')}
                             </Text>
                         </Text>
                     </TouchableOpacity>
@@ -205,19 +207,19 @@ export default function AuthScreen() {
                 <View style={styles.features}>
                     <View style={styles.featureItem}>
                         <Text style={styles.featureIcon}>📸</Text>
-                        <Text style={styles.featureText}>AI Analiz</Text>
+                        <Text style={styles.featureText}>{t('analyze')} AI</Text>
                     </View>
                     <View style={styles.featureItem}>
                         <Text style={styles.featureIcon}>🥗</Text>
-                        <Text style={styles.featureText}>Diyet Planı</Text>
+                        <Text style={styles.featureText}>{t('diet_plan')}</Text>
                     </View>
                     <View style={styles.featureItem}>
                         <Text style={styles.featureIcon}>💧</Text>
-                        <Text style={styles.featureText}>Su Takibi</Text>
+                        <Text style={styles.featureText}>{t('water_tracking')}</Text>
                     </View>
                     <View style={styles.featureItem}>
                         <Text style={styles.featureIcon}>🏆</Text>
-                        <Text style={styles.featureText}>Seri Takibi</Text>
+                        <Text style={styles.featureText}>{t('streak')}</Text>
                     </View>
                 </View>
             </ScrollView>

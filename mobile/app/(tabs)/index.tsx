@@ -59,6 +59,7 @@ import {
 } from "lucide-react-native";
 import { analyzeImage, logMeal, createDietPlan, getTodayMeals, addWaterLog, getWaterLogs, getLeaderboard, getFriends, searchUser, followUser, getStreak, getDailyStats, FoodItem, DietPlan, UserInfo, calculateDailyCalorieGoal, getAchievements, checkAchievements, notifyPhotoAnalyzed, Achievement } from "../../services/api";
 import { useTheme } from "../../context/ThemeContext";
+import { useLanguage } from "../../context/LanguageContext";
 import AsyncStorage from "@react-native-async-storage/async-storage";
 
 const { width } = Dimensions.get('window');
@@ -77,6 +78,7 @@ const goals = [
 
 export default function HomeScreen() {
     const { isDarkMode, colors } = useTheme();
+    const { t, language } = useLanguage();
 
     const [image, setImage] = useState<string | null>(null);
     const [loading, setLoading] = useState(false);
@@ -525,14 +527,14 @@ export default function HomeScreen() {
                         onPress={() => setActiveTab('analiz')}
                     >
                         <Camera color={activeTab === 'analiz' ? '#10b981' : '#9ca3af'} size={18} />
-                        <Text style={[styles.tabText, activeTab === 'analiz' && styles.tabTextActive]}>Analiz</Text>
+                        <Text style={[styles.tabText, activeTab === 'analiz' && styles.tabTextActive]}>{t('analyze')}</Text>
                     </TouchableOpacity>
                     <TouchableOpacity
                         style={[styles.tab, activeTab === 'diyet' && styles.tabActive]}
                         onPress={() => setActiveTab('diyet')}
                     >
                         <ChefHat color={activeTab === 'diyet' ? '#10b981' : '#9ca3af'} size={18} />
-                        <Text style={[styles.tabText, activeTab === 'diyet' && styles.tabTextActive]}>Diyet</Text>
+                        <Text style={[styles.tabText, activeTab === 'diyet' && styles.tabTextActive]}>{t('diet')}</Text>
                     </TouchableOpacity>
                 </View>
 
@@ -546,16 +548,16 @@ export default function HomeScreen() {
                         style={styles.calorieCard}
                     >
                         <View style={styles.calorieHeader}>
-                            <Text style={styles.calorieLabel}>Günlük Hedef</Text>
+                            <Text style={styles.calorieLabel}>{t('daily_calorie_goal')}</Text>
                             <View style={styles.calorieGoalContainer}>
                                 <Text style={styles.calorieGoalNumber}>{dailyCalorieGoal}</Text>
-                                <Text style={styles.calorieGoalText}>kcal hedef</Text>
+                                <Text style={styles.calorieGoalText}>kcal {t('goal').toLowerCase()}</Text>
                             </View>
                         </View>
 
                         <View style={styles.calorieGoalRow}>
                             <Flame color="#ef4444" size={16} />
-                            <Text style={styles.calorieGoalLabel}>Kilo Vermek</Text>
+                            <Text style={styles.calorieGoalLabel}>{t('lose_weight')}</Text>
                         </View>
 
                         <View style={styles.calorieContent}>
@@ -572,15 +574,15 @@ export default function HomeScreen() {
                             {/* Stats */}
                             <View style={styles.calorieStats}>
                                 <View style={styles.calorieStat}>
-                                    <Text style={styles.calorieStatLabel}>Tüketilen</Text>
+                                    <Text style={styles.calorieStatLabel}>{t('consumed')}</Text>
                                     <Text style={styles.calorieStatValueGreen}>{consumedCalories} kcal</Text>
                                 </View>
                                 <View style={styles.calorieStat}>
-                                    <Text style={styles.calorieStatLabel}>Hedef</Text>
+                                    <Text style={styles.calorieStatLabel}>{t('goal')}</Text>
                                     <Text style={styles.calorieStatValue}>{dailyCalorieGoal} kcal</Text>
                                 </View>
                                 <View style={[styles.calorieStat, styles.calorieStatBorder]}>
-                                    <Text style={styles.calorieStatLabel}>Kalan</Text>
+                                    <Text style={styles.calorieStatLabel}>{t('remaining')}</Text>
                                     <Text style={[styles.calorieStatValueGreen, remainingCalories < 0 && styles.calorieStatValueRed]}>
                                         {remainingCalories > 0 ? remainingCalories : 0} kcal
                                     </Text>
@@ -593,8 +595,8 @@ export default function HomeScreen() {
                         <View style={[styles.statusMessage, remainingCalories < 0 && styles.statusMessageRed]}>
                             <Text style={[styles.statusText, remainingCalories < 0 && styles.statusTextRed]}>
                                 {remainingCalories > 0
-                                    ? `✅ Hedefe ${remainingCalories} kcal kaldı`
-                                    : `⚠️ Hedefinizi aştınız`
+                                    ? `✅ ${t('remaining')}: ${remainingCalories} kcal`
+                                    : `⚠️ ${t('goal')} aşıldı`
                                 }
                             </Text>
                         </View>
@@ -614,7 +616,7 @@ export default function HomeScreen() {
                                 <Droplet color="#fff" size={20} />
                             </LinearGradient>
                             <View>
-                                <Text style={styles.widgetTitle}>Su Takibi</Text>
+                                <Text style={styles.widgetTitle}>{t('water_tracking')}</Text>
                                 <Text style={styles.widgetSubtitle}>{waterAmount} / {waterGoal} ml</Text>
                             </View>
                         </View>
@@ -638,8 +640,8 @@ export default function HomeScreen() {
                                 <Trophy color="#fff" size={20} />
                             </LinearGradient>
                             <View>
-                                <Text style={styles.widgetTitle}>Seri</Text>
-                                <Text style={styles.widgetSubtitle}>{streak} gün 🔥</Text>
+                                <Text style={styles.widgetTitle}>{t('streak')}</Text>
+                                <Text style={styles.widgetSubtitle}>{streak} {t('days')} 🔥</Text>
                             </View>
                         </View>
                         <View style={styles.weekDays}>
@@ -650,7 +652,7 @@ export default function HomeScreen() {
                             ))}
                         </View>
                         <View style={styles.widgetFooter}>
-                            <Text style={styles.widgetFooterText}>{streak > 0 ? "Harika gidiyorsun!" : "Bugün başla!"}</Text>
+                            <Text style={styles.widgetFooterText}>{streak > 0 ? t('great_job') : t('start_today')}</Text>
                             <ChevronRight color="#9ca3af" size={14} />
                         </View>
                     </TouchableOpacity>
@@ -671,8 +673,8 @@ export default function HomeScreen() {
                                 >
                                     <Camera color="#fff" size={40} />
                                 </LinearGradient>
-                                <Text style={styles.photoTitle}>Yemek Fotoğrafı Çek</Text>
-                                <Text style={styles.photoSubtitle}>AI ile anında kalori hesapla ve hedefe ekle</Text>
+                                <Text style={styles.photoTitle}>{t('take_photo')}</Text>
+                                <Text style={styles.photoSubtitle}>{t('ai_analyze_desc')}</Text>
 
                                 <View style={styles.features}>
                                     <View style={styles.feature}>
@@ -849,12 +851,12 @@ export default function HomeScreen() {
                                 <Droplet color="#3b82f6" size={48} />
                             </View>
                             <Text style={styles.waterAmount}>{waterAmount} ml</Text>
-                            <Text style={styles.waterGoalText}>/ {waterGoal} ml hedef</Text>
+                            <Text style={styles.waterGoalText}>/ {waterGoal} ml {t('goal').toLowerCase()}</Text>
                         </View>
 
                         <TouchableOpacity style={styles.reminderButton} onPress={scheduleWaterReminder}>
                             <Bell color="#fff" size={16} />
-                            <Text style={styles.reminderButtonText}>Hatırlatıcı Kur (1s)</Text>
+                            <Text style={styles.reminderButtonText}>{t('set_reminder')} (1s)</Text>
                         </TouchableOpacity>
 
                         <View style={styles.waterButtons}>
@@ -869,10 +871,10 @@ export default function HomeScreen() {
                             ))}
                         </View>
 
-                        <Text style={styles.waterLogsTitle}>Bugünkü Kayıtlar</Text>
+                        <Text style={styles.waterLogsTitle}>{t('today_logs')}</Text>
                         <ScrollView style={styles.waterLogsList}>
                             {waterLogs.length === 0 ? (
-                                <Text style={{ textAlign: 'center', color: '#9ca3af', marginTop: 10 }}>Bugün henüz su içmediniz.</Text>
+                                <Text style={{ textAlign: 'center', color: '#9ca3af', marginTop: 10 }}>{t('no_water_yet')}</Text>
                             ) : (
                                 waterLogs.map((log) => (
                                     <View key={log.id} style={styles.waterLogItem}>
@@ -893,15 +895,15 @@ export default function HomeScreen() {
                     <View style={styles.modalContent}>
                         <View style={styles.modalHandle} />
                         <View style={styles.modalHeader}>
-                            <Text style={styles.modalTitle}>🏆 İlerleme & Rozetler</Text>
+                            <Text style={styles.modalTitle}>🏆 {t('progress_badges')}</Text>
                             <TouchableOpacity onPress={() => setShowProgressModal(false)}>
                                 <X color="#9ca3af" size={24} />
                             </TouchableOpacity>
                         </View>
 
                         <View style={styles.streakContainer}>
-                            <Text style={styles.streakNumber}>7</Text>
-                            <Text style={styles.streakText}>gün seri 🔥</Text>
+                            <Text style={styles.streakNumber}>{streak}</Text>
+                            <Text style={styles.streakText}>{t('streak_days')} 🔥</Text>
                         </View>
 
                         <View style={styles.weekCalendar}>
@@ -915,7 +917,7 @@ export default function HomeScreen() {
                             ))}
                         </View>
 
-                        <Text style={styles.achievementsTitle}>Rozetler ({achievementStats.earned}/{achievementStats.total})</Text>
+                        <Text style={styles.achievementsTitle}>{t('achievements')} ({achievementStats.earned}/{achievementStats.total})</Text>
                         <View style={styles.achievementsGrid}>
                             {achievements.slice(0, 6).map((achievement: Achievement) => (
                                 <View key={achievement.type} style={[styles.achievementItem, !achievement.earned && styles.achievementItemLocked]}>
@@ -934,10 +936,10 @@ export default function HomeScreen() {
                     <View style={styles.modalContent}>
                         <View {...notifSwipe.panHandlers} style={styles.swipeArea}>
                             <View style={styles.modalHandle} />
-                            <Text style={styles.swipeHint}>Aşağı kaydırarak kapat</Text>
+                            <Text style={styles.swipeHint}>{t('swipe_to_close')}</Text>
                         </View>
                         <View style={styles.modalHeader}>
-                            <Text style={styles.modalTitle}>🔔 Bildirimler</Text>
+                            <Text style={styles.modalTitle}>🔔 {t('notifications')}</Text>
                             <TouchableOpacity onPress={() => setShowNotificationsModal(false)} style={styles.closeButton}>
                                 <X color="#fff" size={20} />
                             </TouchableOpacity>
@@ -945,7 +947,7 @@ export default function HomeScreen() {
 
                         <ScrollView style={styles.notificationsList}>
                             {notifications.length === 0 ? (
-                                <Text style={{ textAlign: 'center', marginTop: 20, color: '#9ca3af' }}>Bildirim yok.</Text>
+                                <Text style={{ textAlign: 'center', marginTop: 20, color: '#9ca3af' }}>{t('no_notifications')}</Text>
                             ) : (
                                 notifications.map(notification => (
                                     <View key={notification.id} style={[styles.notificationItem, !notification.read && styles.notificationUnread]}>
