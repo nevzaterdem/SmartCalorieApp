@@ -163,17 +163,8 @@ export default function ProfileScreen() {
                             "userWeight", "userHeight", "userAge", "dailyCalorieGoal",
                             "currentDietPlan"
                         ]);
-                        setIsLoggedIn(false);
-                        setUser({
-                            name: "Kullanıcı",
-                            email: "",
-                            avatar: null,
-                            height: "",
-                            weight: "",
-                            age: "",
-                        });
-                        setUserId(null);
-                        Alert.alert("Çıkış Yapıldı", "Başarıyla çıkış yaptınız.");
+                        // Auth ekranına yönlendir
+                        router.replace("/auth");
                     }
                 }
             ]
