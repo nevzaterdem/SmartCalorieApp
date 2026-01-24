@@ -15,8 +15,16 @@ function AuthCheck({ children }: { children: React.ReactNode }) {
 
     const checkAuth = useCallback(async () => {
         try {
-            const token = await AsyncStorage.getItem("authToken");
-            setIsAuthenticated(!!token);
+            // Önce onboarding kontrolü
+            const hasSeenOnboarding = await AsyncStorage.getItem("hasSeenOnboarding");
+            if (!hasSeenOnboarding) {
+                // Onboarding görülmediyse, state güncelle ama yönlendirmeyi useEffect'e bırak
+                // Ancak burada loading'i bitirmeliyiz ki useEffect çalışsın.
+                setIsAuthenticated(false); // Henüz giriş yapmamış sayılır
+            } else {
+                const token = await AsyncStorage.getItem("authToken");
+                setIsAuthenticated(!!token);
+            }
         } catch (e) {
             setIsAuthenticated(false);
         } finally {
@@ -50,15 +58,27 @@ function AuthCheck({ children }: { children: React.ReactNode }) {
     useEffect(() => {
         if (isLoading) return;
 
-        const inAuthGroup = segments[0] === "auth";
+        const checkFlow = async () => {
+            const hasSeenOnboarding = await AsyncStorage.getItem("hasSeenOnboarding");
+            const inAuthGroup = segments[0] === "auth";
+            const inOnboarding = segments[0] === "onboarding";
 
-        if (!isAuthenticated && !inAuthGroup) {
-            // Giriş yapmamış ve auth sayfasında değilse, auth'a yönlendir
-            router.replace("/auth");
-        } else if (isAuthenticated && inAuthGroup) {
-            // Giriş yapmış ve auth sayfasındaysa, ana sayfaya yönlendir
-            router.replace("/(tabs)");
-        }
+            if (!hasSeenOnboarding) {
+                if (!inOnboarding) {
+                    router.replace("/onboarding");
+                }
+                return;
+            }
+
+            // Onboarding görülmüşse normal auth akışı
+            if (!isAuthenticated && !inAuthGroup) {
+                router.replace("/auth");
+            } else if (isAuthenticated && inAuthGroup) {
+                router.replace("/(tabs)");
+            }
+        };
+
+        checkFlow();
     }, [isAuthenticated, segments, isLoading]);
 
     if (isLoading) {
@@ -80,6 +100,7 @@ function AppContent() {
             <StatusBar style={isDarkMode ? "light" : "dark"} />
             <AuthCheck>
                 <Stack screenOptions={{ headerShown: false }}>
+                    <Stack.Screen name="onboarding" options={{ headerShown: false }} />
                     <Stack.Screen name="(tabs)" options={{ headerShown: false }} />
                     <Stack.Screen name="auth" options={{ headerShown: false, presentation: 'fullScreenModal' }} />
                 </Stack>

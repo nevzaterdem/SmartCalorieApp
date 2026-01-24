@@ -205,4 +205,15 @@ export default {
     create_account: "Hesap Oluşturun",
     login_desc: "Hesabınıza giriş yapın",
     register_desc: "Sağlıklı yaşama ilk adım",
+
+    // Onboarding
+    onboarding_1_title: "Yapay Zeka ile Analiz",
+    onboarding_1_desc: "Yemeğinin fotoğrafını çek, kalori ve besin değerlerini saniyeler içinde öğren.",
+    onboarding_2_title: "Kişisel Diyet Planı",
+    onboarding_2_desc: "Sana özel hedefler belirle ve yapay zeka tarafından hazırlanan diyet planını uygula.",
+    onboarding_3_title: "Sağlıklı Yaşam",
+    onboarding_3_desc: "Su tüketimini takip et, serilerini koru ve sağlıklı yaşama adım at.",
+    get_started: "Hemen Başla",
+    next: "İlerle",
+    skip: "Atla",
 };

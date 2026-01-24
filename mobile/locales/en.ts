@@ -205,4 +205,15 @@ export default {
     create_account: "Create Account",
     login_desc: "Sign in to your account",
     register_desc: "First step to a healthy life",
+
+    // Onboarding
+    onboarding_1_title: "AI Analysis",
+    onboarding_1_desc: "Snap a photo of your meal and get calorie and nutrition info in seconds.",
+    onboarding_2_title: "Personal Diet Plan",
+    onboarding_2_desc: "Set your goals and follow the diet plan created by AI just for you.",
+    onboarding_3_title: "Healthy Lifestyle",
+    onboarding_3_desc: "Track your water, keep up your streak, and step into a healthy life.",
+    get_started: "Get Started",
+    next: "Next",
+    skip: "Skip",
 };
