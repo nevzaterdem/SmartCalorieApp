@@ -1,9 +1,8 @@
 // API Configuration
 import AsyncStorage from '@react-native-async-storage/async-storage';
 
-// Local development - use your computer's IP address
-// For production, update to your deployed backend URL (e.g., render.com)
-export const API_BASE_URL = "http://192.168.1.42:3000";
+// Production URL - Render.com'da deploy edildi
+export const API_BASE_URL = "https://smartcalorieapp.onrender.com";
 
 // Types
 interface ApiFoodItem {
