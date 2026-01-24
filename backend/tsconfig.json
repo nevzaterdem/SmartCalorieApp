@@ -1,13 +1,25 @@
 {
   "compilerOptions": {
-    "target": "es2016",
+    "target": "ES2020",
     "module": "commonjs",
-    "rootDir": "./src",        // Kodlarımız burada olacak
-    "outDir": "./dist",        // Derlenmiş kodlar buraya çıkacak
-    "strict": true,            // Katı mod (Hataları affetmez, güvenlidir)
+    "lib": [
+      "ES2020"
+    ],
+    "rootDir": "./src",
+    "outDir": "./dist",
+    "strict": false,
     "esModuleInterop": true,
     "skipLibCheck": true,
-    "forceConsistentCasingInFileNames": true
+    "forceConsistentCasingInFileNames": true,
+    "resolveJsonModule": true,
+    "declaration": false,
+    "noImplicitAny": false
   },
-  "include": ["src/**/*"]
+  "include": [
+    "src/**/*"
+  ],
+  "exclude": [
+    "node_modules",
+    "dist"
+  ]
 }
