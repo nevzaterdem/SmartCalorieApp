@@ -202,16 +202,6 @@ export default function AuthScreen() {
                             </Text>
                         </Text>
                     </TouchableOpacity>
-
-                    {/* Skip Button */}
-                    <TouchableOpacity
-                        onPress={skipAuth}
-                        style={styles.skipButton}
-                    >
-                        <Text style={styles.skipText}>
-                            Demo olarak devam et →
-                        </Text>
-                    </TouchableOpacity>
                 </View>
 
                 {/* Features */}
