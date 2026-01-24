@@ -1,0 +1,132 @@
+export default {
+    // Genel
+    app_name: "SmartCalorie AI",
+    loading: "Yükleniyor...",
+    save: "Kaydet",
+    cancel: "İptal",
+    delete: "Sil",
+    edit: "Düzenle",
+    close: "Kapat",
+    confirm: "Onayla",
+    success: "Başarılı",
+    error: "Hata",
+
+    // Auth
+    login: "Giriş Yap",
+    register: "Kayıt Ol",
+    logout: "Çıkış Yap",
+    email: "E-posta",
+    password: "Şifre",
+    name: "İsim",
+    forgot_password: "Şifremi Unuttum",
+    no_account: "Hesabınız yok mu?",
+    have_account: "Zaten hesabınız var mı?",
+    login_success: "Giriş yapıldı!",
+    register_success: "Hesap oluşturuldu!",
+    invalid_credentials: "Geçersiz e-posta veya şifre",
+
+    // Tabs
+    home: "Ana Sayfa",
+    diet: "Diyet",
+    profile: "Profil",
+
+    // Home Screen
+    good_morning: "Günaydın",
+    good_afternoon: "İyi Günler",
+    good_evening: "İyi Akşamlar",
+    today_summary: "Günlük Özet",
+    calories: "Kalori",
+    remaining: "Kalan",
+    consumed: "Tüketilen",
+    water: "Su",
+    streak: "Seri",
+    days: "gün",
+
+    // Analysis
+    analyze: "Analiz",
+    take_photo: "Fotoğraf Çek",
+    choose_gallery: "Galeriden Seç",
+    analyzing: "Analiz ediliyor...",
+    add_meal: "Yemek Ekle",
+    save_meal: "Yemeği Kaydet",
+    meal_saved: "Yemek kaydedildi",
+
+    // Diet
+    create_diet: "Diyet Oluştur",
+    diet_plan: "Diyet Planı",
+    breakfast: "Kahvaltı",
+    lunch: "Öğle Yemeği",
+    snack: "Ara Öğün",
+    dinner: "Akşam Yemeği",
+    complete: "Tamamla",
+    completed: "Tamamlandı",
+    goal: "Hedef",
+    weight: "Kilo",
+    height: "Boy",
+    gender: "Cinsiyet",
+    male: "Erkek",
+    female: "Kadın",
+    lose_weight: "Kilo Vermek",
+    gain_weight: "Kilo Almak",
+    maintain: "Formu Korumak",
+    build_muscle: "Kas Yapmak",
+
+    // Profile
+    settings: "Ayarlar",
+    language: "Dil",
+    dark_mode: "Karanlık Mod",
+    notifications: "Bildirimler",
+    water_reminder: "Su Hatırlatıcı",
+    meal_reminder: "Öğün Hatırlatıcı",
+    daily_calorie_goal: "Günlük Kalori Hedefi",
+    personal_info: "Kişisel Bilgiler",
+    age: "Yaş",
+    logout_confirm: "Hesabınızdan çıkış yapmak istediğinize emin misiniz?",
+
+    // Achievements
+    achievements: "Rozetler",
+    first_step: "İlk Adım",
+    water_frog: "Su Kurbağası",
+    planned_life: "Planlı Yaşam",
+    photographer: "Fotoğrafçı",
+    streak_3: "3 Gün Seri",
+    weekly_champion: "Haftalık Şampiyon",
+    two_week_master: "2 Hafta Ustası",
+    monthly_legend: "Aylık Efsane",
+    water_master: "Su Ustası",
+    hydration_king: "Hidrasyon Kralı",
+    balanced_nutrition: "Dengeli Beslenme",
+    calorie_expert: "Kalori Uzmanı",
+    social_butterfly: "Sosyal Kelebek",
+    popular: "Popüler",
+    diet_completer: "Diyet Tamamlayıcı",
+    record_master: "Kayıt Ustası",
+    data_monster: "Veri Canavarı",
+    calorie_detective: "Kalori Dedektifi",
+
+    // Social
+    friends: "Arkadaşlar",
+    add_friend: "Arkadaş Ekle",
+    search_user: "Kullanıcı Ara",
+    follow: "Takip Et",
+    leaderboard: "Lider Tablosu",
+
+    // Water
+    add_water: "Su Ekle",
+    water_goal: "Su Hedefi",
+    ml: "ml",
+    liters: "L",
+
+    // Notifications
+    water_reminder_title: "Su İçme Zamanı! 💧",
+    water_reminder_body: "Günde en az 2 litre su içmeyi unutma!",
+    meal_reminder_title: "Öğün Zamanı! 🍽️",
+    meal_reminder_body: "Yemeğinizi kaydetmeyi unutmayın!",
+
+    // Settings
+    appearance: "Görünüm",
+    privacy_security: "Gizlilik ve Güvenlik",
+    help_support: "Yardım & Destek",
+    rate_app: "Uygulamayı Değerlendir",
+    other_settings: "Diğer Ayarlar",
+};

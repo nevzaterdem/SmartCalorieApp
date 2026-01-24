@@ -9,10 +9,12 @@ import * as Notifications from 'expo-notifications';
 import { useTheme } from "../../context/ThemeContext";
 import { LinearGradient } from "expo-linear-gradient";
 import { isAuthenticated, getProfile, updateProfile, logout as apiLogout } from "../../services/api";
+import { useLanguage } from "../../context/LanguageContext";
 
 export default function ProfileScreen() {
     const router = useRouter();
     const { isDarkMode, toggleDarkMode, colors } = useTheme();
+    const { t, language, setLanguage } = useLanguage();
 
     const [loading, setLoading] = useState(true);
     const [saving, setSaving] = useState(false);
@@ -149,12 +151,12 @@ export default function ProfileScreen() {
 
     const handleLogout = async () => {
         Alert.alert(
-            "Çıkış Yap",
-            "Hesabınızdan çıkış yapmak istediğinize emin misiniz?",
+            t('logout'),
+            t('logout_confirm'),
             [
-                { text: "İptal", style: "cancel" },
+                { text: t('cancel'), style: "cancel" },
                 {
-                    text: "Çıkış Yap",
+                    text: t('logout'),
                     style: "destructive",
                     onPress: async () => {
                         await apiLogout();
@@ -310,9 +312,13 @@ export default function ProfileScreen() {
 
     const openLanguageSettings = () => {
         Alert.alert(
-            "Dil Seçimi",
-            "Şu anda sadece Türkçe desteklenmektedir. Yakında daha fazla dil eklenecek!",
-            [{ text: "Tamam" }]
+            t('language'),
+            t('settings') + ":",
+            [
+                { text: "Türkçe 🇹🇷", onPress: () => setLanguage('tr') },
+                { text: "English 🇬🇧", onPress: () => setLanguage('en') },
+                { text: t('cancel'), style: 'cancel' }
+            ]
         );
     };
 
@@ -524,10 +530,10 @@ export default function ProfileScreen() {
 
             {/* Form Section */}
             <View style={[styles.formSection, dynamicStyles.card]}>
-                <Text style={[styles.sectionTitle, dynamicStyles.text]}>Kişisel Bilgiler</Text>
+                <Text style={[styles.sectionTitle, dynamicStyles.text]}>{t('personal_info')}</Text>
 
                 <View style={styles.inputGroup}>
-                    <Text style={[styles.label, dynamicStyles.textSecondary]}>Ad Soyad</Text>
+                    <Text style={[styles.label, dynamicStyles.textSecondary]}>{t('name')}</Text>
                     <View style={[styles.inputContainer, dynamicStyles.input]}>
                         <User color={colors.textMuted} size={20} />
                         <TextInput
@@ -541,7 +547,7 @@ export default function ProfileScreen() {
 
                 <View style={styles.row}>
                     <View style={[styles.inputGroup, { flex: 1 }]}>
-                        <Text style={[styles.label, dynamicStyles.textSecondary]}>Boy (cm)</Text>
+                        <Text style={[styles.label, dynamicStyles.textSecondary]}>{t('height')} (cm)</Text>
                         <View style={[styles.inputContainer, dynamicStyles.input]}>
                             <Ruler color={colors.textMuted} size={20} />
                             <TextInput
@@ -555,7 +561,7 @@ export default function ProfileScreen() {
                     </View>
                     <View style={{ width: 16 }} />
                     <View style={[styles.inputGroup, { flex: 1 }]}>
-                        <Text style={[styles.label, dynamicStyles.textSecondary]}>Kilo (kg)</Text>
+                        <Text style={[styles.label, dynamicStyles.textSecondary]}>{t('weight')} (kg)</Text>
                         <View style={[styles.inputContainer, dynamicStyles.input]}>
                             <Scale color={colors.textMuted} size={20} />
                             <TextInput
@@ -570,7 +576,7 @@ export default function ProfileScreen() {
                 </View>
 
                 <View style={styles.inputGroup}>
-                    <Text style={[styles.label, dynamicStyles.textSecondary]}>Yaş</Text>
+                    <Text style={[styles.label, dynamicStyles.textSecondary]}>{t('age')}</Text>
                     <View style={[styles.inputContainer, dynamicStyles.input]}>
                         <User color={colors.textMuted} size={20} />
                         <TextInput
@@ -585,13 +591,13 @@ export default function ProfileScreen() {
                 </View>
 
                 <TouchableOpacity style={styles.saveButton} onPress={handleSave}>
-                    {saving ? <ActivityIndicator color="#fff" /> : <Text style={styles.saveButtonText}>Değişiklikleri Kaydet</Text>}
+                    {saving ? <ActivityIndicator color="#fff" /> : <Text style={styles.saveButtonText}>{t('save')}</Text>}
                 </TouchableOpacity>
             </View>
 
             {/* Notification Settings */}
             <View style={[styles.settingsSection, dynamicStyles.card]}>
-                <Text style={[styles.sectionTitle, dynamicStyles.text]}>🔔 Bildirim Ayarları</Text>
+                <Text style={[styles.sectionTitle, dynamicStyles.text]}>🔔 {t('notifications')}</Text>
 
                 <View style={[styles.settingRow, { borderBottomColor: colors.border }]}>
                     <View style={styles.settingInfo}>
@@ -599,8 +605,8 @@ export default function ProfileScreen() {
                             <Bell color="#f59e0b" size={20} />
                         </View>
                         <View>
-                            <Text style={[styles.settingText, dynamicStyles.text]}>Bildirimler</Text>
-                            <Text style={[styles.settingDesc, dynamicStyles.textMuted]}>Tüm bildirimleri aç/kapat</Text>
+                            <Text style={[styles.settingText, dynamicStyles.text]}>{t('notifications')}</Text>
+                            <Text style={[styles.settingDesc, dynamicStyles.textMuted]}>{t('notifications')}</Text>
                         </View>
                     </View>
                     <Switch
@@ -617,8 +623,8 @@ export default function ProfileScreen() {
                             <Text style={{ fontSize: 18 }}>💧</Text>
                         </View>
                         <View>
-                            <Text style={[styles.settingText, dynamicStyles.text]}>Su Hatırlatıcı</Text>
-                            <Text style={[styles.settingDesc, dynamicStyles.textMuted]}>Saatlik su içme hatırlatması</Text>
+                            <Text style={[styles.settingText, dynamicStyles.text]}>{t('water_reminder')}</Text>
+                            <Text style={[styles.settingDesc, dynamicStyles.textMuted]}>{t('water_reminder')}</Text>
                         </View>
                     </View>
                     <Switch
@@ -635,8 +641,8 @@ export default function ProfileScreen() {
                             <Text style={{ fontSize: 18 }}>🍽️</Text>
                         </View>
                         <View>
-                            <Text style={[styles.settingText, dynamicStyles.text]}>Öğün Hatırlatıcı</Text>
-                            <Text style={[styles.settingDesc, dynamicStyles.textMuted]}>Yemek zamanı bildirimleri</Text>
+                            <Text style={[styles.settingText, dynamicStyles.text]}>{t('meal_reminder')}</Text>
+                            <Text style={[styles.settingDesc, dynamicStyles.textMuted]}>{t('meal_reminder')}</Text>
                         </View>
                     </View>
                     <Switch
@@ -650,7 +656,7 @@ export default function ProfileScreen() {
 
             {/* Appearance Settings */}
             <View style={[styles.settingsSection, dynamicStyles.card]}>
-                <Text style={[styles.sectionTitle, dynamicStyles.text]}>🎨 Görünüm</Text>
+                <Text style={[styles.sectionTitle, dynamicStyles.text]}>🎨 {t('appearance')}</Text>
 
                 <View style={[styles.settingRow, { borderBottomColor: colors.border }]}>
                     <View style={styles.settingInfo}>
@@ -658,9 +664,9 @@ export default function ProfileScreen() {
                             <Moon color="#fff" size={20} />
                         </View>
                         <View>
-                            <Text style={[styles.settingText, dynamicStyles.text]}>Karanlık Tema</Text>
+                            <Text style={[styles.settingText, dynamicStyles.text]}>{t('dark_mode')}</Text>
                             <Text style={[styles.settingDesc, dynamicStyles.textMuted]}>
-                                {isDarkMode ? "Açık" : "Kapalı"}
+                                {isDarkMode ? "On" : "Off"}
                             </Text>
                         </View>
                     </View>
@@ -675,14 +681,14 @@ export default function ProfileScreen() {
 
             {/* Other Settings */}
             <View style={[styles.settingsSection, dynamicStyles.card]}>
-                <Text style={[styles.sectionTitle, dynamicStyles.text]}>⚙️ Diğer Ayarlar</Text>
+                <Text style={[styles.sectionTitle, dynamicStyles.text]}>⚙️ {t('other_settings')}</Text>
 
                 <TouchableOpacity style={[styles.settingItem, { borderBottomColor: colors.border }]} onPress={openPrivacySettings}>
                     <View style={styles.settingInfo}>
                         <View style={[styles.settingIcon, { backgroundColor: '#dcfce7' }]}>
                             <Shield color="#22c55e" size={20} />
                         </View>
-                        <Text style={[styles.settingText, dynamicStyles.text]}>Gizlilik ve Güvenlik</Text>
+                        <Text style={[styles.settingText, dynamicStyles.text]}>{t('privacy_security')}</Text>
                     </View>
                     <ChevronRight color={colors.textMuted} size={20} />
                 </TouchableOpacity>
@@ -692,10 +698,10 @@ export default function ProfileScreen() {
                         <View style={[styles.settingIcon, { backgroundColor: '#e0e7ff' }]}>
                             <Globe color="#6366f1" size={20} />
                         </View>
-                        <Text style={[styles.settingText, dynamicStyles.text]}>Dil</Text>
+                        <Text style={[styles.settingText, dynamicStyles.text]}>{t('language')}</Text>
                     </View>
                     <View style={{ flexDirection: 'row', alignItems: 'center' }}>
-                        <Text style={[styles.settingValue, dynamicStyles.textMuted]}>Türkçe</Text>
+                        <Text style={[styles.settingValue, dynamicStyles.textMuted]}>{language === 'tr' ? 'Türkçe' : 'English'}</Text>
                         <ChevronRight color={colors.textMuted} size={20} />
                     </View>
                 </TouchableOpacity>
@@ -705,7 +711,7 @@ export default function ProfileScreen() {
                         <View style={[styles.settingIcon, { backgroundColor: '#fef3c7' }]}>
                             <HelpCircle color="#f59e0b" size={20} />
                         </View>
-                        <Text style={[styles.settingText, dynamicStyles.text]}>Yardım & Destek</Text>
+                        <Text style={[styles.settingText, dynamicStyles.text]}>{t('help_support')}</Text>
                     </View>
                     <ChevronRight color={colors.textMuted} size={20} />
                 </TouchableOpacity>
@@ -715,7 +721,7 @@ export default function ProfileScreen() {
                         <View style={[styles.settingIcon, { backgroundColor: '#fce7f3' }]}>
                             <Star color="#ec4899" size={20} />
                         </View>
-                        <Text style={[styles.settingText, dynamicStyles.text]}>Uygulamayı Değerlendir</Text>
+                        <Text style={[styles.settingText, dynamicStyles.text]}>{t('rate_app')}</Text>
                     </View>
                     <ChevronRight color={colors.textMuted} size={20} />
                 </TouchableOpacity>
@@ -725,7 +731,7 @@ export default function ProfileScreen() {
                         <View style={[styles.settingIcon, { backgroundColor: '#fee2e2' }]}>
                             <LogOut color="#ef4444" size={20} />
                         </View>
-                        <Text style={[styles.settingText, { color: '#ef4444' }]}>Çıkış Yap</Text>
+                        <Text style={[styles.settingText, { color: '#ef4444' }]}>{t('logout')}</Text>
                     </View>
                 </TouchableOpacity>
             </View>

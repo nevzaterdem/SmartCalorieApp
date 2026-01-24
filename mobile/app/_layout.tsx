@@ -89,11 +89,16 @@ function AppContent() {
 }
 
 export default function RootLayout() {
+    // LanguageProvider'ı lazy import edelim
+    const { LanguageProvider } = require("../context/LanguageContext");
+
     return (
         <SafeAreaProvider>
-            <ThemeProvider>
-                <AppContent />
-            </ThemeProvider>
+            <LanguageProvider>
+                <ThemeProvider>
+                    <AppContent />
+                </ThemeProvider>
+            </LanguageProvider>
         </SafeAreaProvider>
     );
 }

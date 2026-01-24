@@ -1,0 +1,132 @@
+export default {
+    // General
+    app_name: "SmartCalorie AI",
+    loading: "Loading...",
+    save: "Save",
+    cancel: "Cancel",
+    delete: "Delete",
+    edit: "Edit",
+    close: "Close",
+    confirm: "Confirm",
+    success: "Success",
+    error: "Error",
+
+    // Auth
+    login: "Login",
+    register: "Sign Up",
+    logout: "Logout",
+    email: "Email",
+    password: "Password",
+    name: "Name",
+    forgot_password: "Forgot Password",
+    no_account: "Don't have an account?",
+    have_account: "Already have an account?",
+    login_success: "Logged in successfully!",
+    register_success: "Account created!",
+    invalid_credentials: "Invalid email or password",
+
+    // Tabs
+    home: "Home",
+    diet: "Diet",
+    profile: "Profile",
+
+    // Home Screen
+    good_morning: "Good Morning",
+    good_afternoon: "Good Afternoon",
+    good_evening: "Good Evening",
+    today_summary: "Daily Summary",
+    calories: "Calories",
+    remaining: "Remaining",
+    consumed: "Consumed",
+    water: "Water",
+    streak: "Streak",
+    days: "days",
+
+    // Analysis
+    analyze: "Analyze",
+    take_photo: "Take Photo",
+    choose_gallery: "Choose from Gallery",
+    analyzing: "Analyzing...",
+    add_meal: "Add Meal",
+    save_meal: "Save Meal",
+    meal_saved: "Meal saved",
+
+    // Diet
+    create_diet: "Create Diet",
+    diet_plan: "Diet Plan",
+    breakfast: "Breakfast",
+    lunch: "Lunch",
+    snack: "Snack",
+    dinner: "Dinner",
+    complete: "Complete",
+    completed: "Completed",
+    goal: "Goal",
+    weight: "Weight",
+    height: "Height",
+    gender: "Gender",
+    male: "Male",
+    female: "Female",
+    lose_weight: "Lose Weight",
+    gain_weight: "Gain Weight",
+    maintain: "Maintain",
+    build_muscle: "Build Muscle",
+
+    // Profile
+    settings: "Settings",
+    language: "Language",
+    dark_mode: "Dark Mode",
+    notifications: "Notifications",
+    water_reminder: "Water Reminder",
+    meal_reminder: "Meal Reminder",
+    daily_calorie_goal: "Daily Calorie Goal",
+    personal_info: "Personal Info",
+    age: "Age",
+    logout_confirm: "Are you sure you want to logout?",
+
+    // Achievements
+    achievements: "Achievements",
+    first_step: "First Step",
+    water_frog: "Water Frog",
+    planned_life: "Planned Life",
+    photographer: "Photographer",
+    streak_3: "3 Day Streak",
+    weekly_champion: "Weekly Champion",
+    two_week_master: "2 Week Master",
+    monthly_legend: "Monthly Legend",
+    water_master: "Water Master",
+    hydration_king: "Hydration King",
+    balanced_nutrition: "Balanced Nutrition",
+    calorie_expert: "Calorie Expert",
+    social_butterfly: "Social Butterfly",
+    popular: "Popular",
+    diet_completer: "Diet Completer",
+    record_master: "Record Master",
+    data_monster: "Data Monster",
+    calorie_detective: "Calorie Detective",
+
+    // Social
+    friends: "Friends",
+    add_friend: "Add Friend",
+    search_user: "Search User",
+    follow: "Follow",
+    leaderboard: "Leaderboard",
+
+    // Water
+    add_water: "Add Water",
+    water_goal: "Water Goal",
+    ml: "ml",
+    liters: "L",
+
+    // Notifications
+    water_reminder_title: "Time to Drink Water! 💧",
+    water_reminder_body: "Don't forget to drink at least 2 liters of water!",
+    meal_reminder_title: "Meal Time! 🍽️",
+    meal_reminder_body: "Don't forget to log your meal!",
+
+    // Settings
+    appearance: "Appearance",
+    privacy_security: "Privacy & Security",
+    help_support: "Help & Support",
+    rate_app: "Rate App",
+    other_settings: "Other Settings",
+};
