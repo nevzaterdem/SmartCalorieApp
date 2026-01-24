@@ -1,11 +1,11 @@
 import "../global.css";
-import { useEffect, useState } from "react";
+import { useEffect, useState, useCallback } from "react";
 import { Stack, useRouter, useSegments } from "expo-router";
 import { StatusBar } from "expo-status-bar";
 import { SafeAreaProvider } from "react-native-safe-area-context";
 import { ThemeProvider, useTheme } from "../context/ThemeContext";
 import AsyncStorage from "@react-native-async-storage/async-storage";
-import { View, ActivityIndicator } from "react-native";
+import { View, ActivityIndicator, AppState } from "react-native";
 
 function AuthCheck({ children }: { children: React.ReactNode }) {
     const [isLoading, setIsLoading] = useState(true);
@@ -13,11 +13,7 @@ function AuthCheck({ children }: { children: React.ReactNode }) {
     const segments = useSegments();
     const router = useRouter();
 
-    useEffect(() => {
-        checkAuth();
-    }, []);
-
-    const checkAuth = async () => {
+    const checkAuth = useCallback(async () => {
         try {
             const token = await AsyncStorage.getItem("authToken");
             setIsAuthenticated(!!token);
@@ -26,7 +22,30 @@ function AuthCheck({ children }: { children: React.ReactNode }) {
         } finally {
             setIsLoading(false);
         }
-    };
+    }, []);
+
+    // İlk yükleme
+    useEffect(() => {
+        checkAuth();
+    }, [checkAuth]);
+
+    // Sayfa değişikliklerinde tekrar kontrol et
+    useEffect(() => {
+        checkAuth();
+    }, [segments, checkAuth]);
+
+    // App state değişikliklerinde kontrol et
+    useEffect(() => {
+        const subscription = AppState.addEventListener('change', (nextAppState) => {
+            if (nextAppState === 'active') {
+                checkAuth();
+            }
+        });
+
+        return () => {
+            subscription.remove();
+        };
+    }, [checkAuth]);
 
     useEffect(() => {
         if (isLoading) return;
