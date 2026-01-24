@@ -239,6 +239,13 @@ export async function getLeaderboard() {
     return res.json();
 }
 
+export async function getFriends() {
+    const headers = await getHeaders();
+    const res = await fetch(`${API_BASE_URL}/social/friends`, { headers });
+    if (!res.ok) return [];
+    return res.json();
+}
+
 // ============ PROFILE FUNCTIONS ============
 
 export async function updateProfile(data: {

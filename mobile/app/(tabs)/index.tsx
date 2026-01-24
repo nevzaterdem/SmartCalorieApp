@@ -57,45 +57,22 @@ import {
     Utensils,
     Search,
 } from "lucide-react-native";
-import { analyzeImage, logMeal, createDietPlan, getTodayMeals, addWaterLog, getWaterLogs, getLeaderboard, searchUser, followUser, getStreak, getDailyStats, FoodItem, DietPlan, UserInfo, calculateDailyCalorieGoal } from "../../services/api";
+import { analyzeImage, logMeal, createDietPlan, getTodayMeals, addWaterLog, getWaterLogs, getLeaderboard, getFriends, searchUser, followUser, getStreak, getDailyStats, FoodItem, DietPlan, UserInfo, calculateDailyCalorieGoal } from "../../services/api";
 import { useTheme } from "../../context/ThemeContext";
 import AsyncStorage from "@react-native-async-storage/async-storage";
 
 const { width } = Dimensions.get('window');
 
 // Mock data
-const mockMeals = [
-    { id: 1, name: "Kahvaltı - Yumurta", calories: 320, protein: 18, carbs: 12, fat: 22, time: "08:30", emoji: "🍳" },
-    { id: 2, name: "Öğle - Tavuk Salata", calories: 450, protein: 35, carbs: 25, fat: 18, time: "12:45", emoji: "🥗" },
-    { id: 3, name: "Ara Öğün - Meyve", calories: 120, protein: 2, carbs: 28, fat: 0, time: "15:30", emoji: "🍎" },
-];
-
-const mockWaterLogs = [
-    { id: 1, amount: 250, time: "07:00" },
-    { id: 2, amount: 500, time: "09:30" },
-    { id: 3, amount: 250, time: "12:00" },
-    { id: 4, amount: 250, time: "15:00" },
-];
-
+// Mock data (Notifications ve Achievements için backend henüz hazır değil)
 const mockNotifications = [
-    { id: 1, type: "reminder", title: "Su içme zamanı! 💧", desc: "Günlük hedefinize 750ml kaldı", time: "5 dk önce", read: false },
-    { id: 2, type: "achievement", title: "Yeni Rozet! 🏆", desc: "7 gün seri başarısı kazandınız", time: "1 saat önce", read: false },
-    { id: 3, type: "social", title: "Ahmet sizi takip etti", desc: "Arkadaş isteğinizi kabul etti", time: "2 saat önce", read: true },
-];
-
-const mockFriends = [
-    { id: 1, name: "Ahmet Yılmaz", avatar: "👨", streak: 15, calories: 1650, status: "online" },
-    { id: 2, name: "Ayşe Demir", avatar: "👩", streak: 8, calories: 1420, status: "online" },
-    { id: 3, name: "Mehmet Kaya", avatar: "👨‍🦱", streak: 22, calories: 1890, status: "offline" },
+    { id: 1, type: "reminder", title: "Su içme zamanı! 💧", desc: "Günlük hedefinize ulaşmak için su için.", time: "Şimdi", read: false },
 ];
 
 const mockAchievements = [
-    { id: 1, name: "7 Gün Seri", icon: "🔥", earned: true },
-    { id: 2, name: "Su Canavarı", icon: "💧", earned: true },
-    { id: 3, name: "Fotoğrafçı", icon: "📸", earned: true },
-    { id: 4, name: "Disiplinli", icon: "🎯", earned: false },
-    { id: 5, name: "Sosyal", icon: "🦋", earned: true },
-    { id: 6, name: "Şampiyon", icon: "🏆", earned: false },
+    { id: 1, name: "İlk Adım", icon: "🚀", earned: true },
+    { id: 2, name: "3 Gün Seri", icon: "🔥", earned: false },
+    { id: 3, name: "Su Ustası", icon: "💧", earned: false },
 ];
 
 const goals = [
@@ -253,8 +230,8 @@ export default function HomeScreen() {
     const unreadNotifications = notifications.filter(n => !n.read).length;
 
     // Social State
-    const [friends, setFriends] = useState<any[]>(mockFriends); // Fallback to mock
-    const [friendCount, setFriendCount] = useState(mockFriends.length);
+    const [friends, setFriends] = useState<any[]>([]);
+    const [friendCount, setFriendCount] = useState(0);
     const [searchEmail, setSearchEmail] = useState("");
     const [foundUser, setFoundUser] = useState<any>(null);
     const [isSearching, setIsSearching] = useState(false);
@@ -326,10 +303,18 @@ export default function HomeScreen() {
 
             // Friends
             try {
-                const leaderboard = await getLeaderboard();
-                if (leaderboard && leaderboard.length > 0) {
-                    setFriends(leaderboard);
-                    setFriendCount(leaderboard.length - 1);
+                // Öncelik arkadaş listesi, sonra leaderboard
+                const friendsData = await getFriends();
+                if (friendsData && friendsData.length > 0) {
+                    setFriends(friendsData);
+                    setFriendCount(friendsData.length);
+                } else {
+                    // Fallback to leaderboard if no friends
+                    const leaderboard = await getLeaderboard();
+                    if (leaderboard && leaderboard.length > 0) {
+                        setFriends(leaderboard);
+                        setFriendCount(leaderboard.length - 1);
+                    }
                 }
             } catch (e) { console.log('Social fetch failed', e); }
 
