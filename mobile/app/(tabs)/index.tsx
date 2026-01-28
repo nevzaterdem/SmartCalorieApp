@@ -55,7 +55,6 @@ import {
     Activity,
     Dumbbell,
     Utensils,
-    Utensils,
     Search,
     Plus,
     Minus,
