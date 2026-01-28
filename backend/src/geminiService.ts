@@ -25,8 +25,9 @@ export const analyzeImage = async (imagePath: string) => {
     // LİSTENDEN SEÇİLDİ: "gemini-2.5-flash" (2026 Güncel Model)
     const model = genAI.getGenerativeModel({ model: "gemini-2.5-flash" });
 
-    const prompt = `Bu yemeği analiz et. SADECE JSON formatında cevap ver. Markdown yok.
-      Örnek Format: [{"food_name": "Elma", "estimated_calories": 50, "protein": 0, "carbs": 10, "fat": 0}]`;
+    const prompt = `Bu yemeği analiz et. Tahmini porsiyon veya gramajı da belirle. SADECE JSON formatında cevap ver. Markdown yok.
+      Örnek Format: [{"food_name": "Elma", "estimated_calories": 50, "protein": 0, "carbs": 10, "fat": 0, "estimated_amount": 100, "unit": "g"}]
+      NOT: estimated_calories ve makrolar, tahmin ettiğin miktar (estimated_amount) içindir. Birim (unit) genellikle 'g' (gram) veya 'ml' olmalı.`;
 
     const result = await model.generateContent([
       prompt,

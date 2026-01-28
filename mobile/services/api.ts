@@ -11,6 +11,8 @@ interface ApiFoodItem {
     protein: number;
     carbs: number;
     fat: number;
+    estimated_amount?: number;
+    unit?: string;
 }
 
 export interface FoodItem {
@@ -19,6 +21,10 @@ export interface FoodItem {
     protein: number;
     carbs: number;
     fat: number;
+    amount?: number;
+    unit?: string;
+    originalCalories?: number; // Düzenleme için baz değer
+    originalAmount?: number;   // Düzenleme için baz miktar
 }
 
 export interface DietPlan {
@@ -104,7 +110,11 @@ export async function analyzeImage(imageUri: string): Promise<FoodItem[]> {
         calories: item.estimated_calories,
         protein: item.protein,
         carbs: item.carbs,
-        fat: item.fat
+        fat: item.fat,
+        amount: item.estimated_amount || 100, // Varsayılan 100g
+        unit: item.unit || 'g',
+        originalCalories: item.estimated_calories,
+        originalAmount: item.estimated_amount || 100
     }));
 }
 
