@@ -37,8 +37,9 @@ export const analyzeImage = async (imagePath: string) => {
       const imageBuffer = fs.readFileSync(imagePath);
       const base64Image = imageBuffer.toString("base64");
 
-      // GÜNCELLEME: En kararlı ve yaygın model "gemini-pro"
-      const model = genAI.getGenerativeModel({ model: "gemini-pro" });
+      // GÜNCELLEME: Görsel analizi için Multimodal (Vision) model şart.
+      // gemini-pro (eski) görselleri desteklemez. gemini-1.5-flash kullanıyoruz.
+      const model = genAI.getGenerativeModel({ model: "gemini-1.5-flash" });
 
       const prompt = `Bu yemeği analiz et. Tahmini porsiyon veya gramajı da belirle. SADECE JSON formatında cevap ver. Markdown yok.
         Örnek Format: [{"food_name": "Elma", "estimated_calories": 50, "protein": 0, "carbs": 10, "fat": 0, "estimated_amount": 100, "unit": "g"}]
