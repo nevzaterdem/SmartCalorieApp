@@ -8,7 +8,7 @@ import * as Clipboard from 'expo-clipboard';
 import * as Notifications from 'expo-notifications';
 import { useTheme } from "../../context/ThemeContext";
 import { LinearGradient } from "expo-linear-gradient";
-import { isAuthenticated, getProfile, updateProfile, logout as apiLogout } from "../../services/api";
+import { isAuthenticated, getProfile, updateProfile, logout as apiLogout, getAchievements, AchievementsResponse } from "../../services/api";
 import { useLanguage } from "../../context/LanguageContext";
 
 export default function ProfileScreen() {
@@ -35,6 +35,8 @@ export default function ProfileScreen() {
         age: "",
     });
 
+    const [achievementsData, setAchievementsData] = useState<AchievementsResponse | null>(null);
+
     useEffect(() => {
         checkAuthAndLoad();
     }, []);
@@ -59,6 +61,10 @@ export default function ProfileScreen() {
                     });
                     setUserId(profile.id);
                 }
+
+                // Get achievements
+                const achData = await getAchievements();
+                setAchievementsData(achData);
             }
 
             // Load from AsyncStorage as fallback
