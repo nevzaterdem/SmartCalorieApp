@@ -58,6 +58,7 @@ import {
     Search,
     Plus,
     Minus,
+    Calendar,
 } from "lucide-react-native";
 import { analyzeImage, logMeal, createDietPlan, getTodayMeals, addWaterLog, getWaterLogs, getLeaderboard, getFriends, searchUser, followUser, getStreak, getDailyStats, FoodItem, DietPlan, UserInfo, calculateDailyCalorieGoal, getAchievements, checkAchievements, notifyPhotoAnalyzed, Achievement } from "../../services/api";
 import { useTheme } from "../../context/ThemeContext";
@@ -158,13 +159,20 @@ export default function HomeScreen() {
                 await AsyncStorage.setItem("weeklyDietPlan", JSON.stringify(plan));
                 await AsyncStorage.setItem("weeklyDietPlanCreatedAt", new Date().toISOString());
                 await AsyncStorage.setItem("dailyCalorieGoal", dailyCals.toString());
+                await AsyncStorage.setItem("lastTrackedDate", new Date().toDateString());
+
+                // Yeni plan = Sıfırdan başla
+                await AsyncStorage.setItem("todayConsumedCalories", "0");
+                await AsyncStorage.setItem("todayWaterAmount", "0");
+                setConsumedCalories(0);
+                setWaterAmount(0);
                 setDailyCalorieGoal(dailyCals);
 
                 Alert.alert(
                     language === 'tr' ? "Haftalık Plan Oluşturuldu! 🎉" : "Weekly Plan Created! 🎉",
                     language === 'tr'
-                        ? `7 günlük diyetiniz hazır! Günlük kalori hedefiniz: ${dailyCals} kcal`
-                        : `Your 7-day diet is ready! Daily calorie target: ${dailyCals} kcal`
+                        ? `7 günlük diyetiniz hazır! Günlük kalori hedefiniz: ${dailyCals} kcal. Takibiniz sıfırdan başladı!`
+                        : `Your 7-day diet is ready! Daily calorie target: ${dailyCals} kcal. Tracking reset!`
                 );
             } else {
                 Alert.alert(
@@ -257,6 +265,20 @@ export default function HomeScreen() {
     const [achievements, setAchievements] = useState<Achievement[]>([]);
     const [achievementStats, setAchievementStats] = useState({ earned: 0, total: 0, percentage: 0 });
 
+    // Weekly Plan Info
+    const [weeklyPlanInfo, setWeeklyPlanInfo] = useState<{
+        hasActivePlan: boolean;
+        daysRemaining: number;
+        todayName: string;
+        startDate: Date | null;
+    }>({ hasActivePlan: false, daysRemaining: 0, todayName: '', startDate: null });
+
+    // Gün isimleri
+    const dayNames = {
+        tr: ['Pazar', 'Pazartesi', 'Salı', 'Çarşamba', 'Perşembe', 'Cuma', 'Cumartesi'],
+        en: ['Sunday', 'Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Friday', 'Saturday']
+    };
+
     // Load user settings
     const loadUserSettings = useCallback(async () => {
         try {
@@ -316,10 +338,34 @@ export default function HomeScreen() {
                 setDailyCalorieGoal(calculatedGoal);
                 await AsyncStorage.setItem("dailyCalorieGoal", calculatedGoal.toString());
             }
+
+            // Load weekly plan info
+            const weeklyPlanStr = await AsyncStorage.getItem("weeklyDietPlan");
+            const planCreatedAt = await AsyncStorage.getItem("weeklyDietPlanCreatedAt");
+
+            if (weeklyPlanStr && planCreatedAt) {
+                const createdDate = new Date(planCreatedAt);
+                const now = new Date();
+                const daysDiff = Math.floor((now.getTime() - createdDate.getTime()) / (1000 * 60 * 60 * 24));
+                const daysRemaining = Math.max(0, 7 - daysDiff);
+                const todayIndex = now.getDay();
+                const todayName = language === 'tr' ? dayNames.tr[todayIndex] : dayNames.en[todayIndex];
+
+                if (daysRemaining > 0) {
+                    setWeeklyPlanInfo({
+                        hasActivePlan: true,
+                        daysRemaining,
+                        todayName,
+                        startDate: createdDate
+                    });
+                } else {
+                    setWeeklyPlanInfo({ hasActivePlan: false, daysRemaining: 0, todayName: '', startDate: null });
+                }
+            }
         } catch (e) {
             console.log("Settings load error", e);
         }
-    }, []);
+    }, [language]);
 
     // Fetch Data
     const fetchData = useCallback(async () => {
@@ -586,6 +632,36 @@ export default function HomeScreen() {
                         <Text style={[styles.tabText, activeTab === 'diyet' && styles.tabTextActive]}>{t('diet')}</Text>
                     </TouchableOpacity>
                 </View>
+
+                {/* Weekly Plan Status Banner */}
+                {weeklyPlanInfo.hasActivePlan && (
+                    <TouchableOpacity
+                        style={styles.weeklyPlanBanner}
+                        onPress={() => setActiveTab('diyet')}
+                    >
+                        <View style={styles.weeklyPlanBannerLeft}>
+                            <View style={styles.weeklyPlanIcon}>
+                                <Calendar color="#fff" size={18} />
+                            </View>
+                            <View>
+                                <Text style={styles.weeklyPlanBannerTitle}>
+                                    {language === 'tr' ? '7 Günlük Plan Aktif' : '7-Day Plan Active'}
+                                </Text>
+                                <Text style={styles.weeklyPlanBannerSubtitle}>
+                                    {language === 'tr'
+                                        ? `Bugün: ${weeklyPlanInfo.todayName} • ${weeklyPlanInfo.daysRemaining} gün kaldı`
+                                        : `Today: ${weeklyPlanInfo.todayName} • ${weeklyPlanInfo.daysRemaining} days left`
+                                    }
+                                </Text>
+                            </View>
+                        </View>
+                        <View style={styles.weeklyPlanBadge}>
+                            <Text style={styles.weeklyPlanBadgeText}>
+                                {language === 'tr' ? 'Görüntüle' : 'View'}
+                            </Text>
+                        </View>
+                    </TouchableOpacity>
+                )}
 
                 {/* Calorie Widget */}
                 <TouchableOpacity
@@ -1456,27 +1532,29 @@ export default function HomeScreen() {
                                         <Text style={styles.dietTotalValue}>{dietPlan.total_calories} kcal</Text>
                                     </View>
 
-                                    {[
-                                        { title: "Kahvaltı", data: dietPlan!.breakfast, icon: Sunrise, color: "#f97316", bg: "#fff7ed" },
-                                        { title: "Öğle", data: dietPlan!.lunch, icon: Sun, color: "#eab308", bg: "#fefce8" },
-                                        { title: "Ara Öğün", data: dietPlan!.snack, icon: Coffee, color: "#a855f7", bg: "#faf5ff" },
-                                        { title: "Akşam", data: dietPlan!.dinner, icon: Moon, color: "#3b82f6", bg: "#eff6ff" },
+                                    {dietPlan && [
+                                        { title: language === 'tr' ? "Kahvaltı" : "Breakfast", data: dietPlan.breakfast, icon: Sunrise, color: "#f97316", bg: "#fff7ed" },
+                                        { title: language === 'tr' ? "Öğle" : "Lunch", data: dietPlan.lunch, icon: Sun, color: "#eab308", bg: "#fefce8" },
+                                        { title: language === 'tr' ? "Ara Öğün" : "Snack", data: dietPlan.snack, icon: Coffee, color: "#a855f7", bg: "#faf5ff" },
+                                        { title: language === 'tr' ? "Akşam" : "Dinner", data: dietPlan.dinner, icon: Moon, color: "#3b82f6", bg: "#eff6ff" },
                                     ].map((meal, index) => (
-                                        <View key={index} style={[styles.dietMealCard, { backgroundColor: meal.bg }]}>
-                                            <View style={styles.dietMealHeader}>
-                                                <View style={styles.dietMealTitleRow}>
-                                                    <meal.icon color={meal.color} size={18} />
-                                                    <Text style={[styles.dietMealTitle, { color: meal.color }]}>{meal.title}</Text>
+                                        meal.data ? ( // Check if meal data exists
+                                            <View key={index} style={[styles.dietMealCard, { backgroundColor: meal.bg }]}>
+                                                <View style={styles.dietMealHeader}>
+                                                    <View style={styles.dietMealTitleRow}>
+                                                        <meal.icon color={meal.color} size={18} />
+                                                        <Text style={[styles.dietMealTitle, { color: meal.color }]}>{meal.title}</Text>
+                                                    </View>
+                                                    <Text style={styles.dietMealCalories}>{meal.data?.calories || 0} kcal</Text>
                                                 </View>
-                                                <Text style={styles.dietMealCalories}>{meal.data.calories} kcal</Text>
+                                                {meal.data?.items?.map((item, i) => (
+                                                    <View key={i} style={styles.dietMealItem}>
+                                                        <View style={[styles.bullet, { backgroundColor: meal.color }]} />
+                                                        <Text style={styles.dietMealItemText}>{item}</Text>
+                                                    </View>
+                                                ))}
                                             </View>
-                                            {meal.data.items.map((item, i) => (
-                                                <View key={i} style={styles.dietMealItem}>
-                                                    <View style={[styles.bullet, { backgroundColor: meal.color }]} />
-                                                    <Text style={styles.dietMealItemText}>{item}</Text>
-                                                </View>
-                                            ))}
-                                        </View>
+                                        ) : null
                                     ))}
                                 </View>
                             )}
@@ -2964,5 +3042,51 @@ const styles = StyleSheet.create({
         borderRadius: 18,
         justifyContent: 'center',
         alignItems: 'center',
+    },
+
+    // Weekly Plan Banner Styles
+    weeklyPlanBanner: {
+        flexDirection: 'row',
+        alignItems: 'center',
+        justifyContent: 'space-between',
+        backgroundColor: '#10b981',
+        borderRadius: 16,
+        padding: 14,
+        marginBottom: 16,
+        marginHorizontal: 16,
+    },
+    weeklyPlanBannerLeft: {
+        flexDirection: 'row',
+        alignItems: 'center',
+    },
+    weeklyPlanIcon: {
+        width: 36,
+        height: 36,
+        borderRadius: 10,
+        backgroundColor: 'rgba(255,255,255,0.2)',
+        justifyContent: 'center',
+        alignItems: 'center',
+        marginRight: 12,
+    },
+    weeklyPlanBannerTitle: {
+        fontSize: 14,
+        fontWeight: '700',
+        color: '#fff',
+    },
+    weeklyPlanBannerSubtitle: {
+        fontSize: 12,
+        color: 'rgba(255,255,255,0.8)',
+        marginTop: 2,
+    },
+    weeklyPlanBadge: {
+        backgroundColor: 'rgba(255,255,255,0.2)',
+        paddingHorizontal: 12,
+        paddingVertical: 6,
+        borderRadius: 8,
+    },
+    weeklyPlanBadgeText: {
+        color: '#fff',
+        fontSize: 12,
+        fontWeight: '600',
     },
 });
