@@ -143,7 +143,7 @@ export default function HomeScreen() {
         setDietLoading(true);
         setDietPlan(null);
         try {
-            const plan = await createDietPlan(userInfo);
+            const plan = await createDietPlan(userInfo, language);
             if (plan.breakfast) {
                 setDietPlan(plan);
 
@@ -449,10 +449,10 @@ export default function HomeScreen() {
         setLoading(true);
         setResult(null);
         try {
-            const data = await analyzeImage(imageUri);
+            const data = await analyzeImage(imageUri, language);
             setResult(data);
         } catch (error) {
-            Alert.alert("Hata", "Analiz sırasında bir hata oluştu");
+            Alert.alert(language === 'tr' ? "Hata" : "Error", language === 'tr' ? "Analiz sırasında bir hata oluştu" : "An error occurred during analysis");
         } finally {
             setLoading(false);
         }

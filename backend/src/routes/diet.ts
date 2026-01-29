@@ -10,14 +10,14 @@ const prisma = new PrismaClient();
 router.post("/create", authenticateToken, async (req: AuthRequest, res: Response): Promise<any> => {
     try {
         const userId = req.userId!;
-        const { weight, height, gender, goal } = req.body;
+        const { weight, height, gender, goal, language = 'tr' } = req.body;
 
         if (!weight || !height || !gender || !goal) {
             return res.status(400).json({ error: "Eksik bilgi" });
         }
 
-        // AI ile diyet planı oluştur
-        const plan = await generateDietPlan({ weight, height, gender, goal });
+        // AI ile diyet planı oluştur (dil parametresi ile)
+        const plan = await generateDietPlan({ weight, height, gender, goal }, language);
 
         if (!plan.breakfast) {
             return res.status(500).json({ error: "Plan oluşturulamadı" });

@@ -62,7 +62,7 @@ const goals = [
 
 export default function DietScreen() {
     const { isDarkMode, colors } = useTheme();
-    const { t } = useLanguage();
+    const { t, language } = useLanguage();
 
     const mealConfig = {
         breakfast: { title: t('breakfast'), icon: Sunrise, color: "#f97316", bg: "#fff7ed" },
@@ -173,7 +173,7 @@ export default function DietScreen() {
         try {
             if (isLoggedIn) {
                 // Use authenticated endpoint
-                const plan = await createAndSaveDietPlan(userInfo);
+                const plan = await createAndSaveDietPlan(userInfo, language);
                 setActivePlan(plan);
                 setTodayProgress({
                     completedMeals: [],
@@ -192,7 +192,7 @@ export default function DietScreen() {
                 setShowForm(false);
             } else {
                 // Use public endpoint for non-logged users
-                const plan = await createDietPlan(userInfo);
+                const plan = await createDietPlan(userInfo, language);
                 if (plan.breakfast) {
                     const savedPlan: SavedDietPlan = {
                         id: 0,

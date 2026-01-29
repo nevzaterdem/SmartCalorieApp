@@ -58,7 +58,8 @@ app.use("/achievements", achievementsRoutes);
 app.post("/analyze", upload.single("image"), async (req: Request, res: Response): Promise<any> => {
   try {
     if (!req.file) return res.status(400).json({ error: "Resim yok" });
-    const result = await analyzeImage(req.file.path);
+    const language = req.body.language || 'tr';
+    const result = await analyzeImage(req.file.path, language);
     res.json(result);
   } catch (error) {
     res.status(500).json({ error: "Hata" });
@@ -69,7 +70,8 @@ app.post("/analyze", upload.single("image"), async (req: Request, res: Response)
 app.post("/create-diet", async (req: Request, res: Response): Promise<any> => {
   console.log("🔔 DİYET İSTEĞİ GELDİ!");
   try {
-    const plan = await createDietPlan(req.body);
+    const language = req.body.language || 'tr';
+    const plan = await createDietPlan(req.body, language);
     res.json(plan);
   } catch (error) {
     console.error("Diyet Hatası:", error);
@@ -88,7 +90,8 @@ app.post("/log-meal", (req, res) => {
 app.post("/analyze-auth", authenticateToken, upload.single("image"), async (req: AuthRequest, res: Response): Promise<any> => {
   try {
     if (!req.file) return res.status(400).json({ error: "Resim yok" });
-    const result = await analyzeImage(req.file.path);
+    const language = req.body.language || 'tr';
+    const result = await analyzeImage(req.file.path, language);
     // Could save to user's meal log here
     res.json(result);
   } catch (error) {
@@ -99,7 +102,8 @@ app.post("/analyze-auth", authenticateToken, upload.single("image"), async (req:
 // Create diet with user profile
 app.post("/create-diet-auth", authenticateToken, async (req: AuthRequest, res: Response): Promise<any> => {
   try {
-    const plan = await createDietPlan(req.body);
+    const language = req.body.language || 'tr';
+    const plan = await createDietPlan(req.body, language);
     res.json(plan);
   } catch (error) {
     console.error("Diyet Hatası:", error);

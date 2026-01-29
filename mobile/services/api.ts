@@ -79,7 +79,7 @@ async function uriToBase64(uri: string): Promise<string> {
 
 // ============ AI FUNCTIONS ============
 
-export async function analyzeImage(imageUri: string): Promise<FoodItem[]> {
+export async function analyzeImage(imageUri: string, language: string = 'tr'): Promise<FoodItem[]> {
     const formData = new FormData();
 
     const uriParts = imageUri.split(".");
@@ -91,6 +91,9 @@ export async function analyzeImage(imageUri: string): Promise<FoodItem[]> {
         type: `image/${fileType}`,
     } as unknown as Blob);
 
+    // Dil parametresini formData'ya ekle
+    formData.append("language", language);
+
     const response = await fetch(`${API_BASE_URL}/analyze`, {
         method: "POST",
         body: formData,
@@ -100,7 +103,7 @@ export async function analyzeImage(imageUri: string): Promise<FoodItem[]> {
     });
 
     if (!response.ok) {
-        throw new Error("Analiz başarısız oldu");
+        throw new Error(language === 'tr' ? "Analiz başarısız oldu" : "Analysis failed");
     }
 
     const data: ApiFoodItem[] = await response.json();
@@ -118,17 +121,17 @@ export async function analyzeImage(imageUri: string): Promise<FoodItem[]> {
     }));
 }
 
-export async function createDietPlan(userInfo: UserInfo): Promise<DietPlan> {
+export async function createDietPlan(userInfo: UserInfo, language: string = 'tr'): Promise<DietPlan> {
     const response = await fetch(`${API_BASE_URL}/create-diet`, {
         method: "POST",
         headers: {
             "Content-Type": "application/json",
         },
-        body: JSON.stringify(userInfo),
+        body: JSON.stringify({ ...userInfo, language }),
     });
 
     if (!response.ok) {
-        throw new Error("Diyet planı oluşturulamadı");
+        throw new Error(language === 'tr' ? "Diyet planı oluşturulamadı" : "Failed to create diet plan");
     }
 
     return response.json();
@@ -457,17 +460,17 @@ export interface DietProgress {
 }
 
 // Diyet planı oluştur ve kaydet
-export async function createAndSaveDietPlan(userInfo: UserInfo): Promise<SavedDietPlan> {
+export async function createAndSaveDietPlan(userInfo: UserInfo, language: string = 'tr'): Promise<SavedDietPlan> {
     const headers = await getHeaders();
     const response = await fetch(`${API_BASE_URL}/diet/create`, {
         method: "POST",
         headers,
-        body: JSON.stringify(userInfo),
+        body: JSON.stringify({ ...userInfo, language }),
     });
 
     if (!response.ok) {
         const error = await response.json().catch(() => ({}));
-        throw new Error(error.error || "Diyet planı oluşturulamadı");
+        throw new Error(error.error || (language === 'tr' ? "Diyet planı oluşturulamadı" : "Failed to create diet plan"));
     }
 
     return response.json();

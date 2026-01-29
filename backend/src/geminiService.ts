@@ -31,19 +31,26 @@ async function withRetry<T>(fn: () => Promise<T>, retries = 3, delay = 1000): Pr
 }
 
 // --- Fonksiyon 1: Resim Analizi ---
-export const analyzeImage = async (imagePath: string) => {
+export const analyzeImage = async (imagePath: string, language: string = 'tr') => {
   return withRetry(async () => {
     try {
       const imageBuffer = fs.readFileSync(imagePath);
       const base64Image = imageBuffer.toString("base64");
 
       // gemini-2.5-flash: 2026 güncel model, görsel analiz destekli
-      // Hem görsel hem metin destekler, hızlı ve güvenilir
       const model = genAI.getGenerativeModel({ model: "gemini-2.5-flash" });
 
-      const prompt = `Bu yemeği analiz et. Tahmini porsiyon veya gramajı da belirle. SADECE JSON formatında cevap ver. Markdown yok.
-        Örnek Format: [{"food_name": "Elma", "estimated_calories": 50, "protein": 0, "carbs": 10, "fat": 0, "estimated_amount": 100, "unit": "g"}]
-        NOT: estimated_calories ve makrolar, tahmin ettiğin miktar (estimated_amount) içindir. Birim (unit) genellikle 'g' (gram) veya 'ml' olmalı.`;
+      // Dile göre prompt seçimi
+      const prompts: { [key: string]: string } = {
+        tr: `Bu yemeği analiz et. Tahmini porsiyon veya gramajı da belirle. SADECE JSON formatında cevap ver. Markdown yok.
+          Örnek Format: [{"food_name": "Elma", "estimated_calories": 50, "protein": 0, "carbs": 10, "fat": 0, "estimated_amount": 100, "unit": "g"}]
+          NOT: estimated_calories ve makrolar, tahmin ettiğin miktar (estimated_amount) içindir. Birim (unit) genellikle 'g' (gram) veya 'ml' olmalı.`,
+        en: `Analyze this food. Also estimate the portion size or weight. Respond ONLY in JSON format. No markdown.
+          Example Format: [{"food_name": "Apple", "estimated_calories": 50, "protein": 0, "carbs": 10, "fat": 0, "estimated_amount": 100, "unit": "g"}]
+          NOTE: estimated_calories and macros are for the estimated amount. Unit should typically be 'g' (grams) or 'ml'.`
+      };
+
+      const prompt = prompts[language] || prompts['en'];
 
       const result = await model.generateContent([
         prompt,
@@ -55,40 +62,63 @@ export const analyzeImage = async (imagePath: string) => {
 
     } catch (error: any) {
       console.error("📸 Resim Analiz Hatası (Detaylı):", JSON.stringify(error, null, 2));
-      throw error; // Retry için hatayı fırlat
+      throw error;
     }
   });
 };
 
 // --- Fonksiyon 2: Diyet Planı ---
-export const createDietPlan = async (userInfo: any) => {
+export const createDietPlan = async (userInfo: any, language: string = 'tr') => {
   return withRetry(async () => {
     try {
       // gemini-2.5-flash: 2026 güncel model
-      // Hızlı, güvenilir ve metin üretimi için optimize
-      console.log("🤖 Yapay Zeka Devrede (Model: gemini-2.5-flash)...");
+      console.log(`🤖 Yapay Zeka Devrede (Model: gemini-2.5-flash, Dil: ${language})...`);
 
       const model = genAI.getGenerativeModel({ model: "gemini-2.5-flash" });
 
-      const prompt = `
-        Sen uzman bir diyetisyensin.
-        Kullanıcı: ${userInfo.weight}kg, ${userInfo.height}cm, Cinsiyet: ${userInfo.gender}, Hedef: ${userInfo.goal}.
-        
-        Görevin: 1 Günlük Örnek Diyet Listesi hazırla.
-        
-        ÇOK ÖNEMLİ KURAL: Cevabın SADECE ve SADECE saf JSON formatında olmalı. 
-        Markdown kullanma. Başlangıçta veya sonda yazı yazma.
-        
-        İstenen JSON Formatı:
-        {
-          "breakfast": { "title": "Sabah", "items": ["Yumurta", "Peynir"], "calories": 300 },
-          "lunch": { "title": "Öğle", "items": ["Tavuk", "Salata"], "calories": 500 },
-          "snack": { "title": "Ara Öğün", "items": ["Elma"], "calories": 100 },
-          "dinner": { "title": "Akşam", "items": ["Çorba"], "calories": 400 },
-          "total_calories": 1300,
-          "advice": "Bol su içmeyi unutma."
-        }
-      `;
+      // Dile göre prompt seçimi
+      const prompts: { [key: string]: string } = {
+        tr: `
+          Sen uzman bir diyetisyensin.
+          Kullanıcı: ${userInfo.weight}kg, ${userInfo.height}cm, Cinsiyet: ${userInfo.gender}, Hedef: ${userInfo.goal}.
+          
+          Görevin: 1 Günlük Örnek Diyet Listesi hazırla.
+          
+          ÇOK ÖNEMLİ KURAL: Cevabın SADECE ve SADECE saf JSON formatında olmalı. 
+          Markdown kullanma. Başlangıçta veya sonda yazı yazma.
+          
+          İstenen JSON Formatı:
+          {
+            "breakfast": { "title": "Sabah", "items": ["Yumurta", "Peynir"], "calories": 300 },
+            "lunch": { "title": "Öğle", "items": ["Tavuk", "Salata"], "calories": 500 },
+            "snack": { "title": "Ara Öğün", "items": ["Elma"], "calories": 100 },
+            "dinner": { "title": "Akşam", "items": ["Çorba"], "calories": 400 },
+            "total_calories": 1300,
+            "advice": "Bol su içmeyi unutma."
+          }
+        `,
+        en: `
+          You are an expert dietitian.
+          User: ${userInfo.weight}kg, ${userInfo.height}cm, Gender: ${userInfo.gender}, Goal: ${userInfo.goal}.
+          
+          Your task: Create a 1-Day Sample Diet Plan.
+          
+          VERY IMPORTANT RULE: Your response must be ONLY and ONLY pure JSON format. 
+          No markdown. No text before or after.
+          
+          Required JSON Format:
+          {
+            "breakfast": { "title": "Breakfast", "items": ["Eggs", "Cheese"], "calories": 300 },
+            "lunch": { "title": "Lunch", "items": ["Chicken", "Salad"], "calories": 500 },
+            "snack": { "title": "Snack", "items": ["Apple"], "calories": 100 },
+            "dinner": { "title": "Dinner", "items": ["Soup"], "calories": 400 },
+            "total_calories": 1300,
+            "advice": "Don't forget to drink plenty of water."
+          }
+        `
+      };
+
+      const prompt = prompts[language] || prompts['en'];
 
       const result = await model.generateContent(prompt);
       const responseText = result.response.text();
