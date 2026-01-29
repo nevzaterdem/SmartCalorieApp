@@ -37,9 +37,9 @@ export const analyzeImage = async (imagePath: string) => {
       const imageBuffer = fs.readFileSync(imagePath);
       const base64Image = imageBuffer.toString("base64");
 
-      // 2024-2025 için en kararlı multimodal model: gemini-2.0-flash
+      // gemini-1.5-flash: Daha geniş free tier kotası var
       // Hem görsel hem metin destekler, hızlı ve güvenilir
-      const model = genAI.getGenerativeModel({ model: "gemini-2.0-flash" });
+      const model = genAI.getGenerativeModel({ model: "gemini-1.5-flash" });
 
       const prompt = `Bu yemeği analiz et. Tahmini porsiyon veya gramajı da belirle. SADECE JSON formatında cevap ver. Markdown yok.
         Örnek Format: [{"food_name": "Elma", "estimated_calories": 50, "protein": 0, "carbs": 10, "fat": 0, "estimated_amount": 100, "unit": "g"}]
@@ -64,11 +64,11 @@ export const analyzeImage = async (imagePath: string) => {
 export const createDietPlan = async (userInfo: any) => {
   return withRetry(async () => {
     try {
-      // 2024-2025 için en kararlı model: gemini-2.0-flash
+      // gemini-1.5-flash: Daha geniş free tier kotası var
       // Hızlı, güvenilir ve metin üretimi için optimize
-      console.log("🤖 Yapay Zeka Devrede (Model: gemini-2.0-flash)...");
+      console.log("🤖 Yapay Zeka Devrede (Model: gemini-1.5-flash)...");
 
-      const model = genAI.getGenerativeModel({ model: "gemini-2.0-flash" });
+      const model = genAI.getGenerativeModel({ model: "gemini-1.5-flash" });
 
       const prompt = `
         Sen uzman bir diyetisyensin.
