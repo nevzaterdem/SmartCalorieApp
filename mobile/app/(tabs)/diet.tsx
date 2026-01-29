@@ -81,6 +81,7 @@ export default function DietScreen() {
     const [activePlan, setActivePlan] = useState<SavedDietPlan | null>(null);
     const [weeklyPlan, setWeeklyPlan] = useState<DietPlan | null>(null);
     const [selectedDay, setSelectedDay] = useState<keyof WeeklyDays>('monday');
+    const [planStartDate, setPlanStartDate] = useState<Date | null>(null);
     const [todayProgress, setTodayProgress] = useState<DietProgress | null>(null);
     const [dietHistory, setDietHistory] = useState<any[]>([]);
     const [isLoggedIn, setIsLoggedIn] = useState(false);
@@ -163,6 +164,7 @@ export default function DietScreen() {
 
                 // Haftalık planı kaydet
                 setWeeklyPlan(plan);
+                setPlanStartDate(createdDate);
 
                 // Bugünün gününü bul
                 const today = new Date().getDay();
@@ -436,6 +438,29 @@ export default function DietScreen() {
                         </View>
                     </View>
                 </LinearGradient>
+
+                {/* Haftalık Plan Bilgisi */}
+                {weeklyPlan?.days && planStartDate && (
+                    <View style={styles.planInfoBanner}>
+                        <Calendar color="#7c3aed" size={20} />
+                        <View style={{ marginLeft: 12, flex: 1 }}>
+                            <Text style={styles.planInfoTitle}>
+                                {language === 'tr' ? '7 Günlük Plan Aktif' : '7-Day Plan Active'}
+                            </Text>
+                            <Text style={styles.planInfoText}>
+                                {language === 'tr'
+                                    ? `${Math.max(0, 7 - Math.floor((new Date().getTime() - planStartDate.getTime()) / (1000 * 60 * 60 * 24)))} gün kaldı`
+                                    : `${Math.max(0, 7 - Math.floor((new Date().getTime() - planStartDate.getTime()) / (1000 * 60 * 60 * 24)))} days remaining`
+                                }
+                            </Text>
+                        </View>
+                        <View style={styles.planDayBadge}>
+                            <Text style={styles.planDayBadgeText}>
+                                {dayLabels[selectedDay]}
+                            </Text>
+                        </View>
+                    </View>
+                )}
 
                 {/* Haftalık Gün Seçici */}
                 {weeklyPlan?.days && (
@@ -940,6 +965,39 @@ const styles = StyleSheet.create({
     emptyHistoryText: { color: '#9ca3af', fontSize: 14, marginTop: 12 },
     loginPrompt: { alignItems: 'center', paddingVertical: 48 },
     loginPromptText: { color: '#6b7280', fontSize: 14, marginTop: 12, textAlign: 'center' },
+
+    // Plan Info Banner
+    planInfoBanner: {
+        flexDirection: 'row',
+        alignItems: 'center',
+        backgroundColor: '#f3e8ff',
+        borderRadius: 12,
+        padding: 14,
+        marginBottom: 12,
+        borderWidth: 1,
+        borderColor: '#e9d5ff',
+    },
+    planInfoTitle: {
+        fontSize: 14,
+        fontWeight: '700',
+        color: '#7c3aed',
+    },
+    planInfoText: {
+        fontSize: 12,
+        color: '#9333ea',
+        marginTop: 2,
+    },
+    planDayBadge: {
+        backgroundColor: '#7c3aed',
+        paddingHorizontal: 12,
+        paddingVertical: 6,
+        borderRadius: 8,
+    },
+    planDayBadgeText: {
+        color: '#fff',
+        fontSize: 12,
+        fontWeight: '700',
+    },
 
     // Weekly Day Selector Styles
     weeklySelector: {

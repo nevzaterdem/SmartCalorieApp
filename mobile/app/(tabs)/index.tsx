@@ -260,6 +260,30 @@ export default function HomeScreen() {
     // Load user settings
     const loadUserSettings = useCallback(async () => {
         try {
+            // Check if it's a new day - reset water and calories if so
+            const lastTrackedDate = await AsyncStorage.getItem("lastTrackedDate");
+            const today = new Date().toDateString();
+
+            if (lastTrackedDate !== today) {
+                // New day! Reset water amount
+                console.log("🌅 Yeni gün başladı! Su ve kalori sıfırlanıyor...");
+                await AsyncStorage.setItem("lastTrackedDate", today);
+                await AsyncStorage.setItem("todayWaterAmount", "0");
+                await AsyncStorage.setItem("todayConsumedCalories", "0");
+                setWaterAmount(0);
+                setConsumedCalories(0);
+            } else {
+                // Same day, load existing values
+                const savedWater = await AsyncStorage.getItem("todayWaterAmount");
+                if (savedWater) {
+                    setWaterAmount(parseInt(savedWater));
+                }
+                const savedCalories = await AsyncStorage.getItem("todayConsumedCalories");
+                if (savedCalories) {
+                    setConsumedCalories(parseInt(savedCalories));
+                }
+            }
+
             // Try to load calorie goal from storage
             const savedGoal = await AsyncStorage.getItem("dailyCalorieGoal");
             if (savedGoal) {
@@ -494,9 +518,12 @@ export default function HomeScreen() {
     const addWater = async (amount: number) => {
         try {
             await addWaterLog(amount);
+            const newTotal = waterAmount + amount;
+            setWaterAmount(newTotal);
+            await AsyncStorage.setItem("todayWaterAmount", newTotal.toString());
             fetchData(); // Refresh data
         } catch (error) {
-            Alert.alert("Hata", "Su kaydedilemedi");
+            Alert.alert(language === 'tr' ? "Hata" : "Error", language === 'tr' ? "Su kaydedilemedi" : "Failed to log water");
         }
     };
 
