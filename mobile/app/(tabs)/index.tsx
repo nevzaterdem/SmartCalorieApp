@@ -137,31 +137,47 @@ export default function HomeScreen() {
 
     const handleCreateDiet = async () => {
         if (!userInfo.weight || !userInfo.height) {
-            Alert.alert("Eksik Bilgi", "Lütfen kilo ve boy bilgilerinizi girin.");
+            Alert.alert(
+                language === 'tr' ? "Eksik Bilgi" : "Missing Info",
+                language === 'tr' ? "Lütfen kilo ve boy bilgilerinizi girin." : "Please enter your weight and height."
+            );
             return;
         }
         setDietLoading(true);
         setDietPlan(null);
         try {
             const plan = await createDietPlan(userInfo, language);
-            if (plan.breakfast) {
+
+            // Haftalık plan veya günlük plan
+            const dailyCals = plan.daily_calories || plan.total_calories || 0;
+
+            if (plan.days || plan.breakfast) {
                 setDietPlan(plan);
 
-                // Kalori hedefini kaydet ve senkronize et
-                if (plan.total_calories) {
-                    await AsyncStorage.setItem("dailyCalorieGoal", plan.total_calories.toString());
-                    setDailyCalorieGoal(plan.total_calories);
-                    Alert.alert(
-                        "Plan Oluşturuldu! 🎉",
-                        `Günlük kalori hedefiniz ${plan.total_calories} kcal olarak güncellendi.`
-                    );
-                }
+                // Haftalık planı kaydet
+                await AsyncStorage.setItem("weeklyDietPlan", JSON.stringify(plan));
+                await AsyncStorage.setItem("weeklyDietPlanCreatedAt", new Date().toISOString());
+                await AsyncStorage.setItem("dailyCalorieGoal", dailyCals.toString());
+                setDailyCalorieGoal(dailyCals);
+
+                Alert.alert(
+                    language === 'tr' ? "Haftalık Plan Oluşturuldu! 🎉" : "Weekly Plan Created! 🎉",
+                    language === 'tr'
+                        ? `7 günlük diyetiniz hazır! Günlük kalori hedefiniz: ${dailyCals} kcal`
+                        : `Your 7-day diet is ready! Daily calorie target: ${dailyCals} kcal`
+                );
             } else {
-                Alert.alert("Hata", "Plan oluşturulamadı");
+                Alert.alert(
+                    language === 'tr' ? "Hata" : "Error",
+                    language === 'tr' ? "Plan oluşturulamadı" : "Failed to create plan"
+                );
             }
         } catch (error) {
             console.error("Diyet Hatası:", error);
-            Alert.alert("Hata", "Sunucu hatası! Backend çalışıyor mu?");
+            Alert.alert(
+                language === 'tr' ? "Hata" : "Error",
+                language === 'tr' ? "Sunucu hatası! Backend çalışıyor mu?" : "Server error!"
+            );
         } finally {
             setDietLoading(false);
         }

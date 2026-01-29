@@ -142,19 +142,83 @@ export default function DietScreen() {
 
     const loadLocalPlan = async () => {
         try {
-            const savedPlan = await AsyncStorage.getItem("currentDietPlan");
-            if (savedPlan) {
-                const plan = JSON.parse(savedPlan);
-                setActivePlan({
-                    id: 0,
-                    ...plan
-                });
-                setActiveTab('plan');
+            // Önce haftalık planı kontrol et
+            const weeklyPlanStr = await AsyncStorage.getItem("weeklyDietPlan");
+            const planCreatedAt = await AsyncStorage.getItem("weeklyDietPlanCreatedAt");
+
+            if (weeklyPlanStr) {
+                const plan: DietPlan = JSON.parse(weeklyPlanStr);
+
+                // Planın hâlâ geçerli olup olmadığını kontrol et (7 gün içinde mi?)
+                const createdDate = planCreatedAt ? new Date(planCreatedAt) : new Date();
+                const now = new Date();
+                const daysDiff = Math.floor((now.getTime() - createdDate.getTime()) / (1000 * 60 * 60 * 24));
+
+                if (daysDiff >= 7) {
+                    // Plan süresi dolmuş, yeni plan oluşturulmalı
+                    console.log("📅 Haftalık plan süresi doldu, yeni plan gerekli");
+                    setActiveTab('create');
+                    return;
+                }
+
+                // Haftalık planı kaydet
+                setWeeklyPlan(plan);
+
+                // Bugünün gününü bul
+                const today = new Date().getDay();
+                const dayMap: (keyof WeeklyDays)[] = ['sunday', 'monday', 'tuesday', 'wednesday', 'thursday', 'friday', 'saturday'];
+                const todayKey = dayMap[today];
+                setSelectedDay(todayKey);
+
+                // Bugünün planını yükle
+                const dailyCals = plan.daily_calories || plan.total_calories || 0;
+
+                if (plan.days && plan.days[todayKey]) {
+                    const todayMeals = plan.days[todayKey];
+                    const savedPlan: SavedDietPlan = {
+                        id: 0,
+                        breakfast: { ...(todayMeals.breakfast || { title: '', items: [], calories: 0 }), completed: false },
+                        lunch: { ...(todayMeals.lunch || { title: '', items: [], calories: 0 }), completed: false },
+                        snack: { ...(todayMeals.snack || { title: '', items: [], calories: 0 }), completed: false },
+                        dinner: { ...(todayMeals.dinner || { title: '', items: [], calories: 0 }), completed: false },
+                        total_calories: dailyCals,
+                        advice: plan.advice
+                    };
+                    setActivePlan(savedPlan);
+                    setActiveTab('plan');
+                    console.log(`📅 Bugün: ${todayMeals.day_name || todayKey} - Plan yüklendi`);
+                } else if (plan.breakfast) {
+                    // Eski format (tek günlük plan)
+                    setActivePlan({
+                        id: 0,
+                        breakfast: { ...(plan.breakfast || { title: '', items: [], calories: 0 }), completed: false },
+                        lunch: { ...(plan.lunch || { title: '', items: [], calories: 0 }), completed: false },
+                        snack: { ...(plan.snack || { title: '', items: [], calories: 0 }), completed: false },
+                        dinner: { ...(plan.dinner || { title: '', items: [], calories: 0 }), completed: false },
+                        total_calories: dailyCals,
+                        advice: plan.advice
+                    });
+                    setActiveTab('plan');
+                } else {
+                    setActiveTab('create');
+                }
             } else {
-                setActiveTab('create');
+                // Haftalık plan yok, eski formatı dene
+                const savedPlan = await AsyncStorage.getItem("currentDietPlan");
+                if (savedPlan) {
+                    const plan = JSON.parse(savedPlan);
+                    setActivePlan({
+                        id: 0,
+                        ...plan
+                    });
+                    setActiveTab('plan');
+                } else {
+                    setActiveTab('create');
+                }
             }
         } catch (e) {
             console.log("Local plan yüklenemedi", e);
+            setActiveTab('create');
         }
     };
 
@@ -216,14 +280,15 @@ export default function DietScreen() {
                 // Bugünün gününü seç
                 const today = new Date().getDay();
                 const dayMap: (keyof WeeklyDays)[] = ['sunday', 'monday', 'tuesday', 'wednesday', 'thursday', 'friday', 'saturday'];
-                setSelectedDay(dayMap[today]);
+                const todayKey = dayMap[today];
+                setSelectedDay(todayKey);
 
                 const dailyCals = plan.daily_calories || plan.total_calories || 0;
 
                 if (plan.days || plan.breakfast) {
-                    // İlk günü veya mevcut günü activePlan'a set et
-                    const firstDay = plan.days?.monday || {
-                        day_name: language === 'tr' ? 'Pazartesi' : 'Monday',
+                    // Bugünün verilerini yükle (monday değil, bugün)
+                    const todayMeals = plan.days?.[todayKey] || plan.days?.monday || {
+                        day_name: language === 'tr' ? 'Bugün' : 'Today',
                         breakfast: plan.breakfast || { title: '', items: [], calories: 0 },
                         lunch: plan.lunch || { title: '', items: [], calories: 0 },
                         snack: plan.snack || { title: '', items: [], calories: 0 },
@@ -232,16 +297,19 @@ export default function DietScreen() {
 
                     const savedPlan: SavedDietPlan = {
                         id: 0,
-                        breakfast: { ...(firstDay.breakfast || { title: '', items: [], calories: 0 }), completed: false },
-                        lunch: { ...(firstDay.lunch || { title: '', items: [], calories: 0 }), completed: false },
-                        snack: { ...(firstDay.snack || { title: '', items: [], calories: 0 }), completed: false },
-                        dinner: { ...(firstDay.dinner || { title: '', items: [], calories: 0 }), completed: false },
+                        breakfast: { ...(todayMeals.breakfast || { title: '', items: [], calories: 0 }), completed: false },
+                        lunch: { ...(todayMeals.lunch || { title: '', items: [], calories: 0 }), completed: false },
+                        snack: { ...(todayMeals.snack || { title: '', items: [], calories: 0 }), completed: false },
+                        dinner: { ...(todayMeals.dinner || { title: '', items: [], calories: 0 }), completed: false },
                         total_calories: dailyCals,
                         advice: plan.advice
                     };
                     setActivePlan(savedPlan);
+
+                    // Planı ve oluşturma tarihini kaydet
                     await AsyncStorage.setItem("currentDietPlan", JSON.stringify(plan));
                     await AsyncStorage.setItem("weeklyDietPlan", JSON.stringify(plan));
+                    await AsyncStorage.setItem("weeklyDietPlanCreatedAt", new Date().toISOString());
                     await AsyncStorage.setItem("dailyCalorieGoal", dailyCals.toString());
 
                     Alert.alert(
