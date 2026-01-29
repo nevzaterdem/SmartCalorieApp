@@ -39,6 +39,8 @@ import {
 import {
     createDietPlan,
     DietPlan,
+    DayMeals,
+    WeeklyDays,
     UserInfo,
     updateProfile,
     getActiveDietPlan,
@@ -77,9 +79,23 @@ export default function DietScreen() {
 
     // Saved diet plan from backend
     const [activePlan, setActivePlan] = useState<SavedDietPlan | null>(null);
+    const [weeklyPlan, setWeeklyPlan] = useState<DietPlan | null>(null);
+    const [selectedDay, setSelectedDay] = useState<keyof WeeklyDays>('monday');
     const [todayProgress, setTodayProgress] = useState<DietProgress | null>(null);
     const [dietHistory, setDietHistory] = useState<any[]>([]);
     const [isLoggedIn, setIsLoggedIn] = useState(false);
+
+    // Gün isimleri
+    const dayKeys: (keyof WeeklyDays)[] = ['monday', 'tuesday', 'wednesday', 'thursday', 'friday', 'saturday', 'sunday'];
+    const dayLabels = {
+        monday: language === 'tr' ? 'Pzt' : 'Mon',
+        tuesday: language === 'tr' ? 'Sal' : 'Tue',
+        wednesday: language === 'tr' ? 'Çar' : 'Wed',
+        thursday: language === 'tr' ? 'Per' : 'Thu',
+        friday: language === 'tr' ? 'Cum' : 'Fri',
+        saturday: language === 'tr' ? 'Cmt' : 'Sat',
+        sunday: language === 'tr' ? 'Paz' : 'Sun',
+    };
 
     // Form state for creating new plan
     const [userInfo, setUserInfo] = useState<UserInfo>({
@@ -179,47 +195,70 @@ export default function DietScreen() {
                     completedMeals: [],
                     completedCalories: 0,
                     totalMeals: 4,
-                    totalCalories: plan.total_calories
+                    totalCalories: plan.total_calories || 0
                 });
 
-                await AsyncStorage.setItem("dailyCalorieGoal", plan.total_calories.toString());
+                await AsyncStorage.setItem("dailyCalorieGoal", (plan.total_calories || 0).toString());
 
                 Alert.alert(
                     t('plan_created'),
-                    t('plan_created_desc').replace('{calories}', plan.total_calories.toString())
+                    t('plan_created_desc').replace('{calories}', (plan.total_calories || 0).toString())
                 );
                 setActiveTab('plan');
                 setShowForm(false);
             } else {
-                // Use public endpoint for non-logged users
+                // Use public endpoint for non-logged users (haftalık plan)
                 const plan = await createDietPlan(userInfo, language);
-                if (plan.breakfast) {
+
+                // Haftalık planı kaydet
+                setWeeklyPlan(plan);
+
+                // Bugünün gününü seç
+                const today = new Date().getDay();
+                const dayMap: (keyof WeeklyDays)[] = ['sunday', 'monday', 'tuesday', 'wednesday', 'thursday', 'friday', 'saturday'];
+                setSelectedDay(dayMap[today]);
+
+                const dailyCals = plan.daily_calories || plan.total_calories || 0;
+
+                if (plan.days || plan.breakfast) {
+                    // İlk günü veya mevcut günü activePlan'a set et
+                    const firstDay = plan.days?.monday || {
+                        day_name: language === 'tr' ? 'Pazartesi' : 'Monday',
+                        breakfast: plan.breakfast || { title: '', items: [], calories: 0 },
+                        lunch: plan.lunch || { title: '', items: [], calories: 0 },
+                        snack: plan.snack || { title: '', items: [], calories: 0 },
+                        dinner: plan.dinner || { title: '', items: [], calories: 0 },
+                    };
+
                     const savedPlan: SavedDietPlan = {
                         id: 0,
-                        breakfast: { ...plan.breakfast, completed: false },
-                        lunch: { ...plan.lunch, completed: false },
-                        snack: { ...plan.snack, completed: false },
-                        dinner: { ...plan.dinner, completed: false },
-                        total_calories: plan.total_calories,
+                        breakfast: { ...(firstDay.breakfast || { title: '', items: [], calories: 0 }), completed: false },
+                        lunch: { ...(firstDay.lunch || { title: '', items: [], calories: 0 }), completed: false },
+                        snack: { ...(firstDay.snack || { title: '', items: [], calories: 0 }), completed: false },
+                        dinner: { ...(firstDay.dinner || { title: '', items: [], calories: 0 }), completed: false },
+                        total_calories: dailyCals,
                         advice: plan.advice
                     };
                     setActivePlan(savedPlan);
                     await AsyncStorage.setItem("currentDietPlan", JSON.stringify(plan));
-                    await AsyncStorage.setItem("dailyCalorieGoal", plan.total_calories.toString());
+                    await AsyncStorage.setItem("weeklyDietPlan", JSON.stringify(plan));
+                    await AsyncStorage.setItem("dailyCalorieGoal", dailyCals.toString());
 
                     Alert.alert(
-                        "Plan Oluşturuldu! 🎉",
-                        `Diyetiniz hazır! Giriş yaparak öğün takibinizi kaydedebilirsiniz.`
+                        language === 'tr' ? "Haftalık Plan Oluşturuldu! 🎉" : "Weekly Plan Created! 🎉",
+                        language === 'tr'
+                            ? `7 günlük diyetiniz hazır! Günlük kalori hedefiniz: ${dailyCals} kcal`
+                            : `Your 7-day diet is ready! Daily calorie target: ${dailyCals} kcal`
                     );
                     setActiveTab('plan');
                     setShowForm(false);
                 } else {
-                    Alert.alert("Hata", "Plan oluşturulamadı");
+                    Alert.alert(language === 'tr' ? "Hata" : "Error", language === 'tr' ? "Plan oluşturulamadı" : "Failed to create plan");
                 }
             }
         } catch (error: any) {
             console.error("Diyet Hatası:", error);
-            Alert.alert("Hata", error.message || "Sunucu hatası! Backend çalışıyor mu?");
+            Alert.alert(language === 'tr' ? "Hata" : "Error", error.message || (language === 'tr' ? "Sunucu hatası! Backend çalışıyor mu?" : "Server error!"));
         } finally {
             setLoading(false);
         }
@@ -295,9 +334,11 @@ export default function DietScreen() {
                 >
                     <View style={styles.progressHeader}>
                         <View>
-                            <Text style={styles.progressTitle}>Bugünkü İlerleme</Text>
+                            <Text style={styles.progressTitle}>
+                                {language === 'tr' ? 'Bugünkü İlerleme' : "Today's Progress"}
+                            </Text>
                             <Text style={styles.progressSubtitle}>
-                                {todayProgress?.completedMeals.length || 0} / 4 öğün tamamlandı
+                                {todayProgress?.completedMeals.length || 0} / 4 {language === 'tr' ? 'öğün tamamlandı' : 'meals completed'}
                             </Text>
                         </View>
                         <View style={styles.progressCircle}>
@@ -309,20 +350,81 @@ export default function DietScreen() {
                     </View>
                     <View style={styles.calorieInfo}>
                         <View style={styles.calorieItem}>
-                            <Text style={styles.calorieLabel}>Tamamlanan</Text>
+                            <Text style={styles.calorieLabel}>
+                                {language === 'tr' ? 'Tamamlanan' : 'Completed'}
+                            </Text>
                             <Text style={styles.calorieValue}>
                                 {todayProgress?.completedCalories || 0} kcal
                             </Text>
                         </View>
                         <View style={styles.calorieDivider} />
                         <View style={styles.calorieItem}>
-                            <Text style={styles.calorieLabel}>Hedef</Text>
+                            <Text style={styles.calorieLabel}>
+                                {language === 'tr' ? 'Hedef' : 'Target'}
+                            </Text>
                             <Text style={styles.calorieValue}>
-                                {activePlan.total_calories} kcal
+                                {activePlan.total_calories || weeklyPlan?.daily_calories || 0} kcal
                             </Text>
                         </View>
                     </View>
                 </LinearGradient>
+
+                {/* Haftalık Gün Seçici */}
+                {weeklyPlan?.days && (
+                    <View style={styles.weeklySelector}>
+                        <Text style={styles.weeklySelectorTitle}>
+                            {language === 'tr' ? '📅 Haftalık Plan' : '📅 Weekly Plan'}
+                        </Text>
+                        <ScrollView
+                            horizontal
+                            showsHorizontalScrollIndicator={false}
+                            contentContainerStyle={styles.dayTabsContainer}
+                        >
+                            {dayKeys.map((day) => {
+                                const isSelected = selectedDay === day;
+                                const dayData = weeklyPlan.days?.[day];
+                                return (
+                                    <TouchableOpacity
+                                        key={day}
+                                        style={[
+                                            styles.dayTab,
+                                            isSelected && styles.dayTabSelected
+                                        ]}
+                                        onPress={() => {
+                                            setSelectedDay(day);
+                                            // Seçili günün verilerini activePlan'a yükle
+                                            if (dayData) {
+                                                const updatedPlan: SavedDietPlan = {
+                                                    id: activePlan?.id || 0,
+                                                    breakfast: { ...dayData.breakfast, completed: false },
+                                                    lunch: { ...dayData.lunch, completed: false },
+                                                    snack: { ...dayData.snack, completed: false },
+                                                    dinner: { ...dayData.dinner, completed: false },
+                                                    total_calories: weeklyPlan.daily_calories || 0,
+                                                    advice: weeklyPlan.advice
+                                                };
+                                                setActivePlan(updatedPlan);
+                                            }
+                                        }}
+                                    >
+                                        <Text style={[
+                                            styles.dayTabText,
+                                            isSelected && styles.dayTabTextSelected
+                                        ]}>
+                                            {dayLabels[day]}
+                                        </Text>
+                                        <Text style={[
+                                            styles.dayTabName,
+                                            isSelected && styles.dayTabNameSelected
+                                        ]}>
+                                            {dayData?.day_name || day}
+                                        </Text>
+                                    </TouchableOpacity>
+                                );
+                            })}
+                        </ScrollView>
+                    </View>
+                )}
 
                 {/* Advice Card */}
                 {activePlan.advice && (
@@ -770,4 +872,55 @@ const styles = StyleSheet.create({
     emptyHistoryText: { color: '#9ca3af', fontSize: 14, marginTop: 12 },
     loginPrompt: { alignItems: 'center', paddingVertical: 48 },
     loginPromptText: { color: '#6b7280', fontSize: 14, marginTop: 12, textAlign: 'center' },
+
+    // Weekly Day Selector Styles
+    weeklySelector: {
+        backgroundColor: '#fff',
+        borderRadius: 16,
+        padding: 16,
+        marginBottom: 16,
+        shadowColor: '#000',
+        shadowOpacity: 0.05,
+        shadowOffset: { width: 0, height: 2 },
+        shadowRadius: 8,
+        elevation: 2,
+    },
+    weeklySelectorTitle: {
+        fontSize: 16,
+        fontWeight: '700',
+        color: '#1f2937',
+        marginBottom: 12
+    },
+    dayTabsContainer: {
+        flexDirection: 'row',
+        gap: 8,
+        paddingRight: 8,
+    },
+    dayTab: {
+        paddingVertical: 12,
+        paddingHorizontal: 16,
+        borderRadius: 12,
+        backgroundColor: '#f3f4f6',
+        alignItems: 'center',
+        minWidth: 60,
+    },
+    dayTabSelected: {
+        backgroundColor: '#7c3aed',
+    },
+    dayTabText: {
+        fontSize: 14,
+        fontWeight: '700',
+        color: '#6b7280',
+    },
+    dayTabTextSelected: {
+        color: '#fff',
+    },
+    dayTabName: {
+        fontSize: 10,
+        color: '#9ca3af',
+        marginTop: 2,
+    },
+    dayTabNameSelected: {
+        color: 'rgba(255,255,255,0.8)',
+    },
 });

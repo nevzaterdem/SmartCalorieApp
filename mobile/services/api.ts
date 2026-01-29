@@ -27,13 +27,38 @@ export interface FoodItem {
     originalAmount?: number;   // Düzenleme için baz miktar
 }
 
+// Günlük öğün yapısı
+export interface DayMeals {
+    day_name: string;
+    breakfast: { title: string; items: string[]; calories: number; completed?: boolean };
+    lunch: { title: string; items: string[]; calories: number; completed?: boolean };
+    snack: { title: string; items: string[]; calories: number; completed?: boolean };
+    dinner: { title: string; items: string[]; calories: number; completed?: boolean };
+}
+
+// Haftalık diyet planı
+export interface WeeklyDays {
+    monday: DayMeals;
+    tuesday: DayMeals;
+    wednesday: DayMeals;
+    thursday: DayMeals;
+    friday: DayMeals;
+    saturday: DayMeals;
+    sunday: DayMeals;
+}
+
 export interface DietPlan {
-    breakfast: { title: string; items: string[]; calories: number };
-    lunch: { title: string; items: string[]; calories: number };
-    snack: { title: string; items: string[]; calories: number };
-    dinner: { title: string; items: string[]; calories: number };
-    total_calories: number;
+    // Haftalık plan (yeni format)
+    daily_calories?: number;
+    days?: WeeklyDays;
     advice: string;
+
+    // Eski format uyumluluğu (ilk gün)
+    breakfast?: { title: string; items: string[]; calories: number };
+    lunch?: { title: string; items: string[]; calories: number };
+    snack?: { title: string; items: string[]; calories: number };
+    dinner?: { title: string; items: string[]; calories: number };
+    total_calories?: number;
 }
 
 export interface UserInfo {

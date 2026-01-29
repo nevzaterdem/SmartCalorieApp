@@ -67,14 +67,21 @@ export const analyzeImage = async (imagePath: string, language: string = 'tr') =
   });
 };
 
-// --- Fonksiyon 2: Diyet Planı ---
+// --- Fonksiyon 2: Haftalık Diyet Planı (7 Gün) ---
 export const createDietPlan = async (userInfo: any, language: string = 'tr') => {
   return withRetry(async () => {
     try {
       // gemini-2.5-flash: 2026 güncel model
       console.log(`🤖 Yapay Zeka Devrede (Model: gemini-2.5-flash, Dil: ${language})...`);
+      console.log(`📅 7 Günlük Haftalık Plan Oluşturuluyor...`);
 
       const model = genAI.getGenerativeModel({ model: "gemini-2.5-flash" });
+
+      // Gün isimleri
+      const dayNames = {
+        tr: ["Pazartesi", "Salı", "Çarşamba", "Perşembe", "Cuma", "Cumartesi", "Pazar"],
+        en: ["Monday", "Tuesday", "Wednesday", "Thursday", "Friday", "Saturday", "Sunday"]
+      };
 
       // Dile göre prompt seçimi
       const prompts: { [key: string]: string } = {
@@ -82,39 +89,69 @@ export const createDietPlan = async (userInfo: any, language: string = 'tr') => 
           Sen uzman bir diyetisyensin.
           Kullanıcı: ${userInfo.weight}kg, ${userInfo.height}cm, Cinsiyet: ${userInfo.gender}, Hedef: ${userInfo.goal}.
           
-          Görevin: 1 Günlük Örnek Diyet Listesi hazırla.
+          Görevin: 7 GÜNLÜK (1 Haftalık) Diyet Programı hazırla.
+          Her gün için FARKLI ve ÇEŞİTLİ yemekler öner. Tekrar yapma!
+          Günlük kalori hedefi her gün yaklaşık aynı olmalı.
           
           ÇOK ÖNEMLİ KURAL: Cevabın SADECE ve SADECE saf JSON formatında olmalı. 
           Markdown kullanma. Başlangıçta veya sonda yazı yazma.
           
           İstenen JSON Formatı:
           {
-            "breakfast": { "title": "Sabah", "items": ["Yumurta", "Peynir"], "calories": 300 },
-            "lunch": { "title": "Öğle", "items": ["Tavuk", "Salata"], "calories": 500 },
-            "snack": { "title": "Ara Öğün", "items": ["Elma"], "calories": 100 },
-            "dinner": { "title": "Akşam", "items": ["Çorba"], "calories": 400 },
-            "total_calories": 1300,
-            "advice": "Bol su içmeyi unutma."
+            "daily_calories": 1500,
+            "advice": "Bol su içmeyi unutma.",
+            "days": {
+              "monday": {
+                "day_name": "Pazartesi",
+                "breakfast": { "title": "Kahvaltı", "items": ["Yumurta", "Peynir", "Domates"], "calories": 350 },
+                "lunch": { "title": "Öğle", "items": ["Izgara Tavuk", "Salata"], "calories": 450 },
+                "snack": { "title": "Ara Öğün", "items": ["Elma", "Badem"], "calories": 150 },
+                "dinner": { "title": "Akşam", "items": ["Mercimek Çorbası", "Tam Buğday Ekmek"], "calories": 400 }
+              },
+              "tuesday": { ... },
+              "wednesday": { ... },
+              "thursday": { ... },
+              "friday": { ... },
+              "saturday": { ... },
+              "sunday": { ... }
+            }
           }
+          
+          Her gün için tüm öğünleri doldur. Yemekler çeşitli ve sağlıklı olmalı.
         `,
         en: `
           You are an expert dietitian.
           User: ${userInfo.weight}kg, ${userInfo.height}cm, Gender: ${userInfo.gender}, Goal: ${userInfo.goal}.
           
-          Your task: Create a 1-Day Sample Diet Plan.
+          Your task: Create a 7-DAY (1 Week) Diet Plan.
+          Suggest DIFFERENT and VARIED meals for each day. No repetition!
+          Daily calorie target should be approximately the same each day.
           
           VERY IMPORTANT RULE: Your response must be ONLY and ONLY pure JSON format. 
           No markdown. No text before or after.
           
           Required JSON Format:
           {
-            "breakfast": { "title": "Breakfast", "items": ["Eggs", "Cheese"], "calories": 300 },
-            "lunch": { "title": "Lunch", "items": ["Chicken", "Salad"], "calories": 500 },
-            "snack": { "title": "Snack", "items": ["Apple"], "calories": 100 },
-            "dinner": { "title": "Dinner", "items": ["Soup"], "calories": 400 },
-            "total_calories": 1300,
-            "advice": "Don't forget to drink plenty of water."
+            "daily_calories": 1500,
+            "advice": "Don't forget to drink plenty of water.",
+            "days": {
+              "monday": {
+                "day_name": "Monday",
+                "breakfast": { "title": "Breakfast", "items": ["Eggs", "Cheese", "Tomato"], "calories": 350 },
+                "lunch": { "title": "Lunch", "items": ["Grilled Chicken", "Salad"], "calories": 450 },
+                "snack": { "title": "Snack", "items": ["Apple", "Almonds"], "calories": 150 },
+                "dinner": { "title": "Dinner", "items": ["Lentil Soup", "Whole Wheat Bread"], "calories": 400 }
+              },
+              "tuesday": { ... },
+              "wednesday": { ... },
+              "thursday": { ... },
+              "friday": { ... },
+              "saturday": { ... },
+              "sunday": { ... }
+            }
           }
+          
+          Fill all meals for each day. Meals should be varied and healthy.
         `
       };
 
@@ -123,10 +160,21 @@ export const createDietPlan = async (userInfo: any, language: string = 'tr') => 
       const result = await model.generateContent(prompt);
       const responseText = result.response.text();
 
-      console.log("📩 AI Cevabı Geldi!");
+      console.log("📩 AI Cevabı Geldi! (7 Günlük Plan)");
 
       const cleanText = cleanJsonText(responseText);
-      return JSON.parse(cleanText);
+      const plan = JSON.parse(cleanText);
+
+      // Eski format uyumluluğu için ilk günü de ekle
+      if (plan.days && plan.days.monday) {
+        plan.breakfast = plan.days.monday.breakfast;
+        plan.lunch = plan.days.monday.lunch;
+        plan.snack = plan.days.monday.snack;
+        plan.dinner = plan.days.monday.dinner;
+        plan.total_calories = plan.daily_calories;
+      }
+
+      return plan;
 
     } catch (error: any) {
       console.error("❌ Model Hatası (Detaylı):", JSON.stringify(error, null, 2));
