@@ -333,15 +333,9 @@ Backend otomatik olarak `main` branch'ine push edildiğinde Render.com üzerinde
 
 ---
 
-## 🤝 Katkıda Bulunma
+## ⚠️ Telif Hakkı
 
-1. Fork edin
-2. Feature branch oluşturun (`git checkout -b feature/yeni-ozellik`)
-3. Değişikliklerinizi commit edin (`git commit -m 'feat: yeni özellik eklendi'`)
-4. Branch'e push edin (`git push origin feature/yeni-ozellik`)
-5. Pull Request açın
-
----
+Bu proje **özel bir projedir**. Kaynak kodu yalnızca inceleme amaçlı paylaşılmaktadır. İzinsiz kopyalama, değiştirme veya dağıtma yasaktır. Dış katkılar (Pull Request) kabul edilmemektedir.
 
 ## 👨‍💻 Geliştirici
 
