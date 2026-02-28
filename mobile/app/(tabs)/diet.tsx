@@ -126,7 +126,7 @@ export default function DietScreen() {
 
     const loadActivePlan = async () => {
         try {
-            const { plan, todayProgress: progress } = await getActiveDietPlan();
+            const { plan, todayProgress: progress } = await getActiveDietPlan(language);
             setActivePlan(plan);
             setTodayProgress(progress);
 
@@ -347,7 +347,7 @@ export default function DietScreen() {
         const isCompleted = todayProgress?.completedMeals.includes(mealType);
 
         try {
-            const result = await completeDietMeal(mealType, !isCompleted);
+            const result = await completeDietMeal(mealType, !isCompleted, language);
 
             if (result.success) {
                 // Update local state

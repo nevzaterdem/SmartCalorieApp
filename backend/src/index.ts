@@ -1,5 +1,6 @@
 import express, { Request, Response } from "express";
 import cors from "cors";
+import helmet from "helmet";
 import multer from "multer";
 import { analyzeImage, createDietPlan } from "./geminiService";
 
@@ -13,13 +14,21 @@ import socialRoutes from "./routes/social";
 import dietRoutes from "./routes/diet";
 import achievementsRoutes from "./routes/achievements";
 import { authenticateToken, AuthRequest } from "./middleware/auth";
+import { generalLimiter, aiLimiter } from "./middleware/security";
 
 const app = express();
 const upload = multer({ dest: "uploads/" });
 
-// CORS Ayarı: Herkese İzin Ver
-app.use(cors({ origin: "*" }));
-app.use(express.json());
+// ============ SECURITY MIDDLEWARE ============
+app.use(helmet()); // HTTP güvenlik başlıkları
+app.use(generalLimiter); // Genel rate limiting: 100 istek/15dk
+
+// CORS Ayarı
+const allowedOrigins = process.env.CORS_ORIGINS?.split(",") || ["*"];
+app.use(cors({ origin: allowedOrigins.includes("*") ? "*" : allowedOrigins }));
+
+// Body parser with size limit
+app.use(express.json({ limit: "10mb" }));
 
 // KONTROL ROTASI: Tarayıcıdan girince bunu görmelisin
 app.get("/", (req, res) => {
@@ -55,7 +64,7 @@ app.use("/achievements", achievementsRoutes);
 // ============ AI ROUTES (Keep original for backward compatibility) ============
 
 // 1. Resim Analizi (Public for now - can add auth later)
-app.post("/analyze", upload.single("image"), async (req: Request, res: Response): Promise<any> => {
+app.post("/analyze", aiLimiter, upload.single("image"), async (req: Request, res: Response): Promise<any> => {
   try {
     if (!req.file) return res.status(400).json({ error: "Resim yok" });
     const language = req.body.language || 'tr';
@@ -67,7 +76,7 @@ app.post("/analyze", upload.single("image"), async (req: Request, res: Response)
 });
 
 // 2. Diyet Programı (Public for now)
-app.post("/create-diet", async (req: Request, res: Response): Promise<any> => {
+app.post("/create-diet", aiLimiter, async (req: Request, res: Response): Promise<any> => {
   console.log("🔔 DİYET İSTEĞİ GELDİ!");
   try {
     const language = req.body.language || 'tr';

@@ -34,7 +34,8 @@
       "permissions": [
         "android.permission.CAMERA",
         "android.permission.READ_EXTERNAL_STORAGE",
-        "android.permission.INTERNET"
+        "android.permission.INTERNET",
+        "android.permission.RECORD_AUDIO"
       ]
     },
     "web": {
@@ -59,11 +60,12 @@
     "experiments": {
       "typedRoutes": true
     },
+    "owner": "nevzat1",
     "extra": {
+      "router": {},
       "eas": {
-        "projectId": "smartcalorie-ai"
+        "projectId": "a1aed57e-8bc2-48ac-a02f-90a4c9bbe51d"
       }
-    },
-    "owner": "nevzaterdem"
+    }
   }
 }

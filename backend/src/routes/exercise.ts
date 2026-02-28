@@ -1,6 +1,7 @@
 import { Router, Response } from "express";
 import { PrismaClient } from "@prisma/client";
 import { authenticateToken, AuthRequest } from "../middleware/auth";
+import { validateExercise } from "../middleware/validate";
 
 const router = Router();
 const prisma = new PrismaClient();
@@ -19,8 +20,8 @@ const exerciseCalories: { [key: string]: number } = {
     "Diğer": 5,
 };
 
-// Add exercise
-router.post("/", authenticateToken, async (req: AuthRequest, res: Response): Promise<any> => {
+// Add exercise (with validation)
+router.post("/", authenticateToken, validateExercise, async (req: AuthRequest, res: Response): Promise<any> => {
     try {
         const { name, duration, caloriesBurned } = req.body;
 

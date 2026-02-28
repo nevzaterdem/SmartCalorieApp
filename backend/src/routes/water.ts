@@ -1,12 +1,13 @@
 import { Router, Response } from "express";
 import { PrismaClient } from "@prisma/client";
 import { authenticateToken, AuthRequest } from "../middleware/auth";
+import { validateWater } from "../middleware/validate";
 
 const router = Router();
 const prisma = new PrismaClient();
 
-// Add water log
-router.post("/", authenticateToken, async (req: AuthRequest, res: Response): Promise<any> => {
+// Add water log (with validation)
+router.post("/", authenticateToken, validateWater, async (req: AuthRequest, res: Response): Promise<any> => {
     try {
         const { amount } = req.body;
 

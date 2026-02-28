@@ -35,6 +35,9 @@ model User {
   // Social Relations
   followedBy    Friendship[] @relation("following")
   following     Friendship[] @relation("follower")
+  
+  // Password Reset
+  passwordResets PasswordResetToken[]
 }
 
 model Friendship {
@@ -149,4 +152,15 @@ model DietMealCompletion {
   date        DateTime @default(now())
   
   @@unique([dietPlanId, mealType, date])
+}
+
+// Şifre sıfırlama tokenları
+model PasswordResetToken {
+  id        Int      @id @default(autoincrement())
+  userId    Int
+  user      User     @relation(fields: [userId], references: [id])
+  token     String   @unique
+  expiresAt DateTime
+  used      Boolean  @default(false)
+  createdAt DateTime @default(now())
 }

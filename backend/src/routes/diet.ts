@@ -6,6 +6,14 @@ import { createDietPlan as generateDietPlan } from "../geminiService";
 const router = Router();
 const prisma = new PrismaClient();
 
+// Dile göre öğün başlıkları
+const getMealTitles = (language: string) => ({
+    breakfast: language === 'tr' ? "Kahvaltı" : "Breakfast",
+    lunch: language === 'tr' ? "Öğle Yemeği" : "Lunch",
+    snack: language === 'tr' ? "Ara Öğün" : "Snack",
+    dinner: language === 'tr' ? "Akşam Yemeği" : "Dinner",
+});
+
 // Yeni diyet planı oluştur ve kaydet
 router.post("/create", authenticateToken, async (req: AuthRequest, res: Response): Promise<any> => {
     try {
@@ -13,14 +21,14 @@ router.post("/create", authenticateToken, async (req: AuthRequest, res: Response
         const { weight, height, gender, goal, language = 'tr' } = req.body;
 
         if (!weight || !height || !gender || !goal) {
-            return res.status(400).json({ error: "Eksik bilgi" });
+            return res.status(400).json({ error: language === 'tr' ? "Eksik bilgi" : "Missing information" });
         }
 
         // AI ile diyet planı oluştur (dil parametresi ile)
         const plan = await generateDietPlan({ weight, height, gender, goal }, language);
 
         if (!plan.breakfast) {
-            return res.status(500).json({ error: "Plan oluşturulamadı" });
+            return res.status(500).json({ error: language === 'tr' ? "Plan oluşturulamadı" : "Failed to create plan" });
         }
 
         // Önceki aktif planları deaktive et
@@ -28,6 +36,8 @@ router.post("/create", authenticateToken, async (req: AuthRequest, res: Response
             where: { userId, isActive: true },
             data: { isActive: false }
         });
+
+        const titles = getMealTitles(language);
 
         // Yeni planı veritabanına kaydet
         const savedPlan = await prisma.dietPlan.create({
@@ -46,7 +56,7 @@ router.post("/create", authenticateToken, async (req: AuthRequest, res: Response
                 dinnerItems: JSON.stringify(plan.dinner.items || []),
                 dinnerCals: plan.dinner.calories || 0,
                 totalCalories: plan.total_calories || 0,
-                advice: plan.advice || "Bol su içmeyi unutmayın!"
+                advice: plan.advice || (language === 'tr' ? "Bol su içmeyi unutmayın!" : "Don't forget to drink plenty of water!")
             }
         });
 
@@ -60,27 +70,27 @@ router.post("/create", authenticateToken, async (req: AuthRequest, res: Response
         res.json({
             id: savedPlan.id,
             breakfast: {
-                title: "Kahvaltı",
+                title: titles.breakfast,
                 items: plan.breakfast.items || [],
                 calories: plan.breakfast.calories || 0
             },
             lunch: {
-                title: "Öğle Yemeği",
+                title: titles.lunch,
                 items: plan.lunch.items || [],
                 calories: plan.lunch.calories || 0
             },
             snack: {
-                title: "Ara Öğün",
+                title: titles.snack,
                 items: plan.snack.items || [],
                 calories: plan.snack.calories || 0
             },
             dinner: {
-                title: "Akşam Yemeği",
+                title: titles.dinner,
                 items: plan.dinner.items || [],
                 calories: plan.dinner.calories || 0
             },
             total_calories: plan.total_calories || 0,
-            advice: plan.advice || "Bol su içmeyi unutmayın!"
+            advice: plan.advice || (language === 'tr' ? "Bol su içmeyi unutmayın!" : "Don't forget to drink plenty of water!")
         });
 
     } catch (error: any) {
@@ -93,6 +103,7 @@ router.post("/create", authenticateToken, async (req: AuthRequest, res: Response
 router.get("/active", authenticateToken, async (req: AuthRequest, res: Response): Promise<any> => {
     try {
         const userId = req.userId!;
+        const language = (req.query.language as string) || 'tr';
 
         const activePlan = await prisma.dietPlan.findFirst({
             where: { userId, isActive: true },
@@ -112,6 +123,8 @@ router.get("/active", authenticateToken, async (req: AuthRequest, res: Response)
             return res.json({ plan: null });
         }
 
+        const titles = getMealTitles(language);
+
         // Bugünkü tamamlanmış öğünler
         const completedMeals: string[] = activePlan.completions.map((c: { mealType: string }) => c.mealType);
 
@@ -119,25 +132,25 @@ router.get("/active", authenticateToken, async (req: AuthRequest, res: Response)
             plan: {
                 id: activePlan.id,
                 breakfast: {
-                    title: "Kahvaltı",
+                    title: titles.breakfast,
                     items: JSON.parse(activePlan.breakfastItems),
                     calories: activePlan.breakfastCals,
                     completed: completedMeals.includes("breakfast")
                 },
                 lunch: {
-                    title: "Öğle Yemeği",
+                    title: titles.lunch,
                     items: JSON.parse(activePlan.lunchItems),
                     calories: activePlan.lunchCals,
                     completed: completedMeals.includes("lunch")
                 },
                 snack: {
-                    title: "Ara Öğün",
+                    title: titles.snack,
                     items: JSON.parse(activePlan.snackItems),
                     calories: activePlan.snackCals,
                     completed: completedMeals.includes("snack")
                 },
                 dinner: {
-                    title: "Akşam Yemeği",
+                    title: titles.dinner,
                     items: JSON.parse(activePlan.dinnerItems),
                     calories: activePlan.dinnerCals,
                     completed: completedMeals.includes("dinner")
@@ -172,10 +185,10 @@ router.get("/active", authenticateToken, async (req: AuthRequest, res: Response)
 router.post("/complete-meal", authenticateToken, async (req: AuthRequest, res: Response): Promise<any> => {
     try {
         const userId = req.userId!;
-        const { mealType, completed = true } = req.body;
+        const { mealType, completed = true, language = 'tr' } = req.body;
 
         if (!["breakfast", "lunch", "snack", "dinner"].includes(mealType)) {
-            return res.status(400).json({ error: "Geçersiz öğün tipi" });
+            return res.status(400).json({ error: language === 'tr' ? "Geçersiz öğün tipi" : "Invalid meal type" });
         }
 
         // Aktif planı bul
@@ -184,11 +197,13 @@ router.post("/complete-meal", authenticateToken, async (req: AuthRequest, res: R
         });
 
         if (!activePlan) {
-            return res.status(404).json({ error: "Aktif diyet planı bulunamadı" });
+            return res.status(404).json({ error: language === 'tr' ? "Aktif diyet planı bulunamadı" : "No active diet plan found" });
         }
 
         const today = new Date();
         today.setHours(0, 0, 0, 0);
+
+        const titles = getMealTitles(language);
 
         if (completed) {
             // Öğünü tamamlandı olarak işaretle
@@ -232,17 +247,12 @@ router.post("/complete-meal", authenticateToken, async (req: AuthRequest, res: R
             }
 
             // Öğünü meal log'a kaydet
-            const mealNames: { [key: string]: string } = {
-                breakfast: "Kahvaltı",
-                lunch: "Öğle Yemeği",
-                snack: "Ara Öğün",
-                dinner: "Akşam Yemeği"
-            };
+            const mealTitle = titles[mealType as keyof typeof titles];
 
             await prisma.mealLog.create({
                 data: {
                     userId,
-                    foodName: `${mealNames[mealType]} (Diyet)`,
+                    foodName: `${mealTitle} (${language === 'tr' ? 'Diyet' : 'Diet'})`,
                     calories,
                     protein: 0,
                     carbs: 0,
@@ -252,7 +262,7 @@ router.post("/complete-meal", authenticateToken, async (req: AuthRequest, res: R
 
             res.json({
                 success: true,
-                message: `${mealNames[mealType]} tamamlandı!`,
+                message: language === 'tr' ? `${mealTitle} tamamlandı!` : `${mealTitle} completed!`,
                 mealType,
                 calories
             });
@@ -268,7 +278,7 @@ router.post("/complete-meal", authenticateToken, async (req: AuthRequest, res: R
 
             res.json({
                 success: true,
-                message: "Öğün işareti kaldırıldı",
+                message: language === 'tr' ? "Öğün işareti kaldırıldı" : "Meal mark removed",
                 mealType
             });
         }

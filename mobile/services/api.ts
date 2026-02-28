@@ -502,9 +502,9 @@ export async function createAndSaveDietPlan(userInfo: UserInfo, language: string
 }
 
 // Aktif diyet planını getir
-export async function getActiveDietPlan(): Promise<{ plan: SavedDietPlan | null; todayProgress: DietProgress | null }> {
+export async function getActiveDietPlan(language: string = 'tr'): Promise<{ plan: SavedDietPlan | null; todayProgress: DietProgress | null }> {
     const headers = await getHeaders();
-    const response = await fetch(`${API_BASE_URL}/diet/active`, { headers });
+    const response = await fetch(`${API_BASE_URL}/diet/active?language=${language}`, { headers });
 
     if (!response.ok) {
         return { plan: null, todayProgress: null };
@@ -514,7 +514,7 @@ export async function getActiveDietPlan(): Promise<{ plan: SavedDietPlan | null;
 }
 
 // Öğünü tamamla
-export async function completeDietMeal(mealType: 'breakfast' | 'lunch' | 'snack' | 'dinner', completed: boolean = true): Promise<{
+export async function completeDietMeal(mealType: 'breakfast' | 'lunch' | 'snack' | 'dinner', completed: boolean = true, language: string = 'tr'): Promise<{
     success: boolean;
     message: string;
     mealType: string;
@@ -524,11 +524,11 @@ export async function completeDietMeal(mealType: 'breakfast' | 'lunch' | 'snack'
     const response = await fetch(`${API_BASE_URL}/diet/complete-meal`, {
         method: "POST",
         headers,
-        body: JSON.stringify({ mealType, completed }),
+        body: JSON.stringify({ mealType, completed, language }),
     });
 
     if (!response.ok) {
-        throw new Error("Öğün güncellenemedi");
+        throw new Error(language === 'tr' ? "Öğün güncellenemedi" : "Failed to update meal");
     }
 
     return response.json();

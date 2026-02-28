@@ -87,7 +87,7 @@ export default function HomeScreen() {
     const [loading, setLoading] = useState(false);
     const [result, setResult] = useState<FoodItem[] | null>(null);
     const [savedItems, setSavedItems] = useState<Set<number>>(new Set());
-    const [activeTab, setActiveTab] = useState<'analiz' | 'diyet'>('analiz');
+    // Removed duplicate activeTab state - analiz/diyet tabs exist in bottom navigation
 
     // Modal states
     const [showCalorieModal, setShowCalorieModal] = useState(false);
@@ -573,71 +573,94 @@ export default function HomeScreen() {
         }
     };
 
+    // Get greeting based on time of day
+    const getGreeting = () => {
+        const hour = new Date().getHours();
+        if (hour < 12) return { text: language === 'tr' ? 'Günaydın' : 'Good Morning', emoji: '☀️' };
+        if (hour < 18) return { text: language === 'tr' ? 'İyi Günler' : 'Good Afternoon', emoji: '🌤️' };
+        return { text: language === 'tr' ? 'İyi Akşamlar' : 'Good Evening', emoji: '🌙' };
+    };
+    const greeting = getGreeting();
+
     return (
         <View style={[styles.container, { backgroundColor: colors.background }]}>
             <ScrollView style={styles.scrollView} showsVerticalScrollIndicator={false}>
-                {/* Header */}
-                <ImageBackground
-                    source={{ uri: 'https://images.unsplash.com/photo-1505935428862-770b6f24f629?q=80&w=2667&auto=format&fit=crop' }}
+                {/* Modern Header */}
+                <LinearGradient
+                    colors={['#059669', '#10b981', '#34d399']}
+                    start={{ x: 0, y: 0 }}
+                    end={{ x: 1, y: 1 }}
                     style={styles.header}
-                    imageStyle={{ opacity: 0.15, borderBottomLeftRadius: 32, borderBottomRightRadius: 32 }}
                 >
-                    <View style={styles.headerLeft}>
-                        <View style={styles.logoContainer}>
-                            <ChefHat color="#10b981" size={24} />
-                        </View>
-                        <Text style={styles.logoText}>SmartCalorie</Text>
-                    </View>
-                    <View style={styles.headerRight}>
-                        <TouchableOpacity
-                            style={styles.iconButton}
-                            onPress={() => setShowNotificationsModal(true)}
-                        >
-                            <Bell color="#6b7280" size={22} />
-                            {unreadNotifications > 0 && (
-                                <View style={styles.badge}>
-                                    <Text style={styles.badgeText}>{unreadNotifications}</Text>
-                                </View>
-                            )}
-                        </TouchableOpacity>
-                        <TouchableOpacity
-                            style={styles.iconButton}
-                            onPress={() => setShowFriendsModal(true)}
-                        >
-                            <Users color="#6b7280" size={22} />
-                            <View style={[styles.badge, { backgroundColor: '#a855f7' }]}>
-                                <Text style={styles.badgeText}>{friendCount}</Text>
+                    <View style={styles.headerTop}>
+                        <View style={styles.headerLeft}>
+                            <View style={styles.logoContainer}>
+                                <ChefHat color="#fff" size={22} />
                             </View>
-                        </TouchableOpacity>
-                        <TouchableOpacity style={styles.loginButton} onPress={handleLogin}>
-                            <LogIn color="#10b981" size={18} />
-                        </TouchableOpacity>
+                            <Text style={styles.logoText}>SmartCalorie</Text>
+                        </View>
+                        <View style={styles.headerRight}>
+                            <TouchableOpacity
+                                style={styles.iconButton}
+                                onPress={() => setShowNotificationsModal(true)}
+                            >
+                                <Bell color="rgba(255,255,255,0.9)" size={20} />
+                                {unreadNotifications > 0 && (
+                                    <View style={styles.badge}>
+                                        <Text style={styles.badgeText}>{unreadNotifications}</Text>
+                                    </View>
+                                )}
+                            </TouchableOpacity>
+                            <TouchableOpacity
+                                style={styles.iconButton}
+                                onPress={() => setShowFriendsModal(true)}
+                            >
+                                <Users color="rgba(255,255,255,0.9)" size={20} />
+                                {friendCount > 0 && (
+                                    <View style={[styles.badge, { backgroundColor: '#a855f7' }]}>
+                                        <Text style={styles.badgeText}>{friendCount}</Text>
+                                    </View>
+                                )}
+                            </TouchableOpacity>
+                            <TouchableOpacity style={styles.loginButton} onPress={handleLogin}>
+                                <LogIn color="#fff" size={18} />
+                            </TouchableOpacity>
+                        </View>
                     </View>
-                </ImageBackground>
-
-                {/* Tab Navigation */}
-                <View style={styles.tabContainer}>
-                    <TouchableOpacity
-                        style={[styles.tab, activeTab === 'analiz' && styles.tabActive]}
-                        onPress={() => setActiveTab('analiz')}
-                    >
-                        <Camera color={activeTab === 'analiz' ? '#10b981' : '#9ca3af'} size={18} />
-                        <Text style={[styles.tabText, activeTab === 'analiz' && styles.tabTextActive]}>{t('analyze')}</Text>
-                    </TouchableOpacity>
-                    <TouchableOpacity
-                        style={[styles.tab, activeTab === 'diyet' && styles.tabActive]}
-                        onPress={() => setActiveTab('diyet')}
-                    >
-                        <ChefHat color={activeTab === 'diyet' ? '#10b981' : '#9ca3af'} size={18} />
-                        <Text style={[styles.tabText, activeTab === 'diyet' && styles.tabTextActive]}>{t('diet')}</Text>
-                    </TouchableOpacity>
-                </View>
+                    <View style={styles.greetingSection}>
+                        <Text style={styles.greetingEmoji}>{greeting.emoji}</Text>
+                        <Text style={styles.greetingText}>{greeting.text}</Text>
+                        <Text style={styles.greetingSubtext}>
+                            {language === 'tr' ? 'Bugün sağlıklı bir gün geçirelim!' : "Let's have a healthy day!"}
+                        </Text>
+                    </View>
+                    {/* Quick Stats in Header */}
+                    <View style={styles.quickStats}>
+                        <View style={styles.quickStat}>
+                            <Flame color="rgba(255,255,255,0.8)" size={16} />
+                            <Text style={styles.quickStatValue}>{consumedCalories}</Text>
+                            <Text style={styles.quickStatLabel}>kcal</Text>
+                        </View>
+                        <View style={styles.quickStatDivider} />
+                        <View style={styles.quickStat}>
+                            <Droplet color="rgba(255,255,255,0.8)" size={16} />
+                            <Text style={styles.quickStatValue}>{waterAmount}</Text>
+                            <Text style={styles.quickStatLabel}>ml</Text>
+                        </View>
+                        <View style={styles.quickStatDivider} />
+                        <View style={styles.quickStat}>
+                            <Trophy color="rgba(255,255,255,0.8)" size={16} />
+                            <Text style={styles.quickStatValue}>{streak}</Text>
+                            <Text style={styles.quickStatLabel}>{language === 'tr' ? 'gün' : 'days'}</Text>
+                        </View>
+                    </View>
+                </LinearGradient>
 
                 {/* Weekly Plan Status Banner */}
                 {weeklyPlanInfo.hasActivePlan && (
                     <TouchableOpacity
                         style={styles.weeklyPlanBanner}
-                        onPress={() => setActiveTab('diyet')}
+                        onPress={() => router.push('/(tabs)/diet')}
                     >
                         <View style={styles.weeklyPlanBannerLeft}>
                             <View style={styles.weeklyPlanIcon}>
@@ -1579,11 +1602,19 @@ const styles = StyleSheet.create({
 
     // Header
     header: {
+        paddingTop: 50,
+        paddingBottom: 20,
+        paddingHorizontal: 16,
+        borderBottomLeftRadius: 28,
+        borderBottomRightRadius: 28,
+        marginHorizontal: -16,
+        marginTop: -1,
+    },
+    headerTop: {
         flexDirection: 'row',
         justifyContent: 'space-between',
         alignItems: 'center',
-        paddingTop: 50,
-        paddingBottom: 16,
+        marginBottom: 16,
     },
     headerLeft: {
         flexDirection: 'row',
@@ -1591,34 +1622,34 @@ const styles = StyleSheet.create({
         gap: 8,
     },
     logoContainer: {
-        width: 40,
-        height: 40,
+        width: 38,
+        height: 38,
         borderRadius: 12,
-        backgroundColor: '#ecfdf5',
+        backgroundColor: 'rgba(255,255,255,0.2)',
         justifyContent: 'center',
         alignItems: 'center',
     },
     logoText: {
         fontSize: 20,
         fontWeight: '800',
-        color: '#10b981',
+        color: '#fff',
     },
     headerRight: {
         flexDirection: 'row',
         alignItems: 'center',
-        gap: 8,
+        gap: 6,
     },
     iconButton: {
-        width: 40,
-        height: 40,
+        width: 38,
+        height: 38,
         borderRadius: 12,
-        backgroundColor: '#fff',
+        backgroundColor: 'rgba(255,255,255,0.15)',
         justifyContent: 'center',
         alignItems: 'center',
-        position: 'relative',
+        position: 'relative' as const,
     },
     badge: {
-        position: 'absolute',
+        position: 'absolute' as const,
         top: -4,
         right: -4,
         backgroundColor: '#ef4444',
@@ -1635,21 +1666,71 @@ const styles = StyleSheet.create({
         fontWeight: '700',
     },
     loginButton: {
-        width: 40,
-        height: 40,
+        width: 38,
+        height: 38,
         borderRadius: 12,
-        backgroundColor: '#ecfdf5',
+        backgroundColor: 'rgba(255,255,255,0.2)',
         justifyContent: 'center',
         alignItems: 'center',
     },
+    // Greeting
+    greetingSection: {
+        alignItems: 'center',
+        marginBottom: 20,
+    },
+    greetingEmoji: {
+        fontSize: 36,
+        marginBottom: 4,
+    },
+    greetingText: {
+        fontSize: 24,
+        fontWeight: '700',
+        color: '#fff',
+        marginBottom: 4,
+    },
+    greetingSubtext: {
+        fontSize: 14,
+        color: 'rgba(255,255,255,0.8)',
+        fontWeight: '500',
+    },
+    // Quick Stats
+    quickStats: {
+        flexDirection: 'row',
+        justifyContent: 'space-around',
+        alignItems: 'center',
+        backgroundColor: 'rgba(255,255,255,0.15)',
+        borderRadius: 16,
+        paddingVertical: 12,
+        paddingHorizontal: 16,
+    },
+    quickStat: {
+        alignItems: 'center',
+        gap: 2,
+    },
+    quickStatValue: {
+        fontSize: 18,
+        fontWeight: '700',
+        color: '#fff',
+    },
+    quickStatLabel: {
+        fontSize: 11,
+        color: 'rgba(255,255,255,0.7)',
+        fontWeight: '500',
+    },
+    quickStatDivider: {
+        width: 1,
+        height: 28,
+        backgroundColor: 'rgba(255,255,255,0.2)',
+    },
 
-    // Tabs
+    // Tabs (removed - using bottom tab navigation)
     tabContainer: {
         flexDirection: 'row',
         backgroundColor: '#fff',
         borderRadius: 16,
         padding: 4,
         marginBottom: 16,
+        display: 'none' as any,
     },
     tab: {
         flex: 1,
@@ -1674,9 +1755,15 @@ const styles = StyleSheet.create({
 
     // Calorie Card
     calorieCard: {
-        borderRadius: 20,
+        borderRadius: 24,
         padding: 20,
         marginBottom: 16,
+        marginTop: 16,
+        shadowColor: '#000',
+        shadowOffset: { width: 0, height: 8 },
+        shadowOpacity: 0.15,
+        shadowRadius: 16,
+        elevation: 8,
     },
     calorieHeader: {
         flexDirection: 'row',
@@ -1800,8 +1887,13 @@ const styles = StyleSheet.create({
     widget: {
         flex: 1,
         backgroundColor: '#fff',
-        borderRadius: 16,
+        borderRadius: 20,
         padding: 16,
+        shadowColor: '#000',
+        shadowOffset: { width: 0, height: 4 },
+        shadowOpacity: 0.08,
+        shadowRadius: 12,
+        elevation: 4,
     },
     widgetHeader: {
         flexDirection: 'row',
@@ -1862,11 +1954,15 @@ const styles = StyleSheet.create({
         backgroundColor: '#10b981',
     },
 
-    // Photo Card
     photoCard: {
         backgroundColor: '#fff',
-        borderRadius: 20,
+        borderRadius: 24,
         overflow: 'hidden',
+        shadowColor: '#000',
+        shadowOffset: { width: 0, height: 4 },
+        shadowOpacity: 0.08,
+        shadowRadius: 12,
+        elevation: 4,
     },
     photoUploadContent: {
         padding: 24,
